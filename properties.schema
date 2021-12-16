@@ -120,11 +120,6 @@
       "help": "This text overwrites the standard body attribute upon completion of the assessment. It may make use of the following variables: {{attemptsSpent}}, {{attempts}}, {{attemptsLeft}}, {{{score}}}, {{{maxScore}}}. {{{feedback}}}, representing the feedback assigned to the appropriate band, is also allowed.",
       "translatable": true
     },
-     "_results": {
-          "type": "object",
-          "title": "Results",
-          "default": {}
-        },
     "_bands": {
       "type": "array",
       "required": true,
