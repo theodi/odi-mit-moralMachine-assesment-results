@@ -1,0 +1,257 @@
+body {
+	font-family: helvetica;
+	font-weight: 100;
+	border: 0px;
+	margin: 0px;
+	text-align: center;
+}
+container {
+	text-align: center;
+}
+.background {
+	width: 333px;
+	height: 500px;
+	display: inline-block;
+	background-size: contain;
+	margin-top: 8px;
+}
+#background-left:hover, #background-right:hover {
+  	box-shadow: 0 0 20px rgba(28,95,159,256); 
+}
+
+#background-right {
+	margin-left: 1em;
+}
+
+.description-button {
+	position: relative;
+    top: -454px;
+    left: 61px;
+    width: 108px;
+    padding: 0.5em;
+    color: black;
+    line-height: 1.4em;
+    background: #95afcf;
+    font-size: 1em;
+}
+#panel-left-hide, #panel-right-hide {
+	display: none;
+}
+.overlay-panel {
+	display: none;
+	position: relative;
+    top: -433px;
+    float: left;
+    width: 329px;
+    height: 200px;
+    background-color: #cccc;
+    margin-left: 2px;
+    font-size: 0.8em;
+    font-weight: 100;
+    color: #0f4273;
+}
+.overlay-panel p {
+	padding-left: 1em;
+    padding-right: 1em;
+}
+.panel h2 {
+	font-weight: 100;
+	font-size: 1.4em;
+}
+table {
+	border-collapse: collapse;
+}
+.table {
+	margin-left: auto;
+    margin-right: auto;
+    width: max-content;
+    border-collapse: collapse;
+    color: #0f4273;
+}
+.table table, .table table th {
+	font-weight: 100;
+	padding: 0.2em;
+	border: 1px solid #1c5f9f;
+	background-color: #1c5f9f11;
+	color: #0f4273;
+}
+.table table td {
+	font-size: 0.8em;
+	vertical-align: top;
+	padding: 0.2em;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	border: 1px solid #1c5f9f;
+	color: #0f4273;
+}
+.credits {
+    margin-left: auto;
+    margin-right: auto;
+	font-size: 0.8em;
+	color: black;
+	vertical-align: top;
+	position: relative;
+    top: -10px;
+}
+.credits a {
+	color: inherit;
+}
+@media only screen and (max-width: 700px) {
+	#background-right {
+		margin-left: 0em;
+		margin-top: 10px;
+	}
+	.credits {
+		position: relative;
+    	top: 10px;
+	}
+}
+@media only screen and (max-width: 1000px) {
+	container {
+		width: calc(666px + 1em);;
+	}
+	.panel {
+    	width: calc(666px - 0.5em);
+    	margin-bottom: 0.2em;
+    	margin-top: 0em;
+    }
+    .table {
+    	margin-left: 50px;
+    	margin-right: none;
+    }
+}
+..characters {
+	border: 1px solid gray;
+	border-radius: 2px;
+	max-width: 40%;
+	vertical-align: top;
+    height: 130px;
+    padding: 6px;
+}
+..characters h1 {
+	font-size: 1.3em;
+	padding: 0;
+	margin: 0.4em;
+}
+..characters .charecter {
+	transform: scale(0.7, 0.7);
+	-ms-transform: scale(0.7, 0.7);
+	-webkit-transform: scale(0.7, 0.7);
+	transform-origin: bottom left;
+	position: relative;
+	bottom: 45px;
+	display: none;
+}
+.left {
+	background-image: url('../img/L.png');
+}
+.right {
+	background-image: url('../img/R.png');
+}
+.background img {
+	width: 333px;
+	height: 500px;
+	cursor: pointer;
+}
+#results {
+	max-width: 100%;
+	min-width: 400px;
+	display: none;
+}
+#results sub-section, #results sub-section panel {
+	display: inline-block;
+}
+.left-50 {
+	margin-top: 1.5em;
+	width: 45%;
+	display: inline-block;
+	vertical-align: top;
+}
+.right-50 {
+	margin-top: 1.5em;
+	width: 45%;
+	display: inline-block;
+	vertical-align: top;
+}
+.padding {
+	display: inline-block;
+	width: 20px;
+}
+#results sub-section panel img {
+	display: inline;
+}
+h1 {
+	font-weight: 100;
+}
+.left-50 h1, .right-50 h1 {
+	margin: 0;
+	margin-bottom: -40px;
+	font-size: 1em;
+	margin-top: 1em;
+	font-weight: 100;
+}
+left, right, result {
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle; 
+}
+left {
+	padding-right: 1em;
+}
+right {
+	padding-left: 1em;
+}
+result {
+	min-width: 290px;
+	
+	vertical-align: top;
+}
+result #slider {
+	border-top: 7px solid gray;
+}
+result #middle, result #left, result #right {
+    width: 5px;
+    height: 20px;
+    background-color: gray;
+    position: relative;
+}
+result #middle {
+	margin-left: 50%;
+	top: -13px;
+}
+result #left {
+	top: 13px;
+}
+result #right {
+	margin-left: 100%;
+	top: -33px;
+}
+result #you {
+    position: relative;
+    top: 57px;
+    text-align: center;
+    left: -0.75em;
+    max-width: fit-content;
+    z-index: 10;
+}
+result #you-bar {
+	width: 5px;
+    height: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: orange;
+    border: 1px solid gray;
+}
+@media only screen and (max-width: 950px) {
+	.left-50, .right-50 {
+		display: block;
+    	margin-left: auto;
+    	margin-right: auto;
+    	width: auto;
+    }
+}
+@media only screen and (max-width: 650px) {
+	.characters h1 {
+		font-size: 1em;
+	}
+}

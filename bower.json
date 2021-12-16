@@ -1,0 +1,17 @@
+{
+  "name": "odi-moralMachineResults",
+  "version": "0.1.0",
+  "framework": ">=5.5",
+  "homepage": "https://github.com/theodi/odi-moralMachineResults",
+  "issues": "https://github.com/theodi/odi-moralMachineResults/issues/new",
+  "component": "moralMachineResults",
+  "targetAttribute": "_moralMachineResults",
+  "displayName": "Moral Machine Results",
+  "description": "A component used to display a single set of ODI Moral Machine (GMCQ) results (based upon Assessment Results)",
+  "main": "/js/odi-moralMachineResults.js",
+  "keywords": [
+    "adapt-plugin",
+    "adapt-component"
+  ],
+  "license": "GPL-3.0"
+}
