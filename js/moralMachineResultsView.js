@@ -63,20 +63,20 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
       // get results template
       let userAnswers = {
         "age-preference": {
-          "Save young": 0,
           "Save old": 0,
+          "Save young": 0,
         },
         "saving-more-lives": {
-          "Save less people": 0,
           "Save more people": 0,
+          "Save less people": 0,
         },
         "gender-preference": {
           Female: 0,
           Male: 0,
         },
         "save-people-in-car": {
-          "Save people in car": 0,
           "Save pedestrians": 0,
+          "Save people in car": 0,
         },
         "species-preference": {
           "Save humans": 0,
@@ -91,16 +91,12 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
           crime: 0,
         },
         "avoid-intervention": {
-          "Avoid Intervention": 0,
           Intervene: 0,
+          "Avoid Intervention": 0,
         },
       };
-
       // let userResults = results.counts;
       // console.log(userResults);
-
-
-      
       
       function nestedToUnestedChanges() {
         if (results.counts == undefined) {
@@ -167,29 +163,34 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
         });
       }
       
-//      `
-// <div id="top">
-// 				<sub-section id="mostSaved" class="characters">
-// 					<h1>Most Saved Character/s</h1>
-// 					<img id="${results.mostSaved}" class="character" src="img/road/male.png">
-// 				</sub-section>
-// 				<sub-section id="mostKilled" class="characters">
-// 					<h1>Most Kiled Character/s</h1>
-//           <img id="${results.mostKilled}" class="character" src="img/road/male.png">
-// 				</sub-section>
-// 			</div>
-//   `;
+
 
 try {
-      const preference = `<p> 
-              these are your preferences: 
-                most killed ${results.mostKilled}, 
-                most saved: ${results.mostSaved}  
-          </p>`;
+      const preference = 
 
-      // let newValues = values.map((value) => {
-      //   //       return value.toLowerCase().replace(/\s/g, '-');
-      //   //     });
+      `
+      <div id="top">
+              <sub-section id="mostSaved" class="characters">
+                <h1>Most Saved Characters</h1>
+                <p> ${results.mostKilled} </p>
+                <img 
+                  id="${results.mostSaved}" 
+                  class="character" 
+                  src="./assets/character/baby.png"
+                />
+              </sub-section>
+              <sub-section id="mostKilled" class="characters">
+                <h1>Most Killed Characters</h1>
+                <p> ${results.mostKilled} </p>
+                <img 
+                  id="${results.mostKilled}" 
+                  class="character"
+                  src="./assets/character/${results.mostKilled.replaceAll(" ", "_")}.png"
+                />
+              </sub-section>
+            </div>
+        `;
+    
       let half = keysForView.length / 2,
         firstHalf = keysForView.slice(0, half),
         secondHalf = keysForView.slice(half);

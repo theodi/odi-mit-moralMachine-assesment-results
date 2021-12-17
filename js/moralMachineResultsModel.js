@@ -2,7 +2,6 @@ define([
   'core/js/adapt',
   'core/js/models/componentModel'
 ], function(Adapt, ComponentModel) {
-  let results = {};
 
   class MoralMachineResultsResultsModel extends ComponentModel {
     
@@ -76,6 +75,11 @@ define([
           //Most killed + most saved 
           let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
           let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
+          console.log(killedLength)
+          console.log(savedLength)
+          console.log(
+          component.getActiveItems()[0].attributes["killed characters"]
+          )
           
       function killedSaved(length, val, arrVal, countsVal) {
           let answer 
@@ -86,8 +90,11 @@ define([
          arrVal.forEach((x) => {
             countsVal[x] = (countsVal[x] || 0) + 1;
           })
-         answer =  Object.keys(countsVal).reduce((a, b) => countsVal[a] > countsVal[b] ? a : b)
-
+          try {
+         answer = Object.keys(countsVal).reduce((a, b) => countsVal[a] > countsVal[b] ? a : b)
+          } catch(err) {
+            answer = 'No characters were saved or killed'
+          }
         return answer 
         }
 
