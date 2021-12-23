@@ -18,13 +18,14 @@
           </div>
         </div>
         {{/if}}
+
        <div class="moralMachineResults__container">
-         <section id="results" style="display: block">
            <div id="top">
            {{#each _completionBody.preference}}
               {{{this}}} 
            {{/each}}
            </div>
+        <section id="results" style="display: block">
          <sub-section class="left-50">
         {{#each _completionBody.leftArr}}
           {{{this}}}

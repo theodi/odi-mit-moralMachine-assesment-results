@@ -176,7 +176,8 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
             firstHalfRatio = list.slice(0, halfRatio),
             secondHalfRatio = list.slice(-halfRatio)
 
-      let preference = [`
+      let preference = 
+              [`
                     <sub-section id="mostSaved" class="characters">
                       <h1>Most Saved Characters</h1>
                       <p> ${results.mostSaved} </p>
@@ -186,7 +187,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
                         src="./assets/character/${results.mostSaved.replaceAll(
                           " ",
                           "_"
-                        )}.png
+                        )}.png"
                       />
                     </sub-section>
                     <sub-section id="mostKilled" class="characters">
@@ -201,7 +202,6 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
                         )}.png"
                       />
                     </sub-section>
-                
               `]
       
         // let styleLeft
@@ -213,6 +213,8 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
       //     }
       //   return styleLeft;
       // }
+
+      // <div id="you" style="margin-left: ${firstHalfRatio[i]}%; ${firstHalfRatio[i] == 100 ? "left: 0em" : ""}">
   
       let leftArr = [];
       for (let i = 0; i < firstHalf.length; i++) {
@@ -224,7 +226,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
               firstHalf[i]
             }_left.svg"/></left>
             <result>
-            <div id="you" style="margin-left: ${firstHalfRatio[i]}%; ${firstHalfRatio[i] == 100 ? "left: 0em" : ""}">
+            <div id="you" style="margin-left: ${firstHalfRatio[i]}%;">
             <div id="you-bar"></div>
             <div> You </div>
             </div>
@@ -252,7 +254,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
                 secondHalf[i]
               }_left.svg"/></left>
               <result>
-              <div id="you" style="margin-left:${secondHalfRatio[i]}% ">
+              <div id="you" style="margin-left:${secondHalfRatio[i]}%">
               <div id="you-bar"></div>
               <div> You </div>
               </div>
@@ -281,8 +283,8 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
         mostSaved: results.mostSaved,
         mostKilled: results.mostKilled,
       };
-
       this.model.set("_completionBody", outputs);
+      $('.moralmachineresults__body-inner').text("");
     }
   }
 
