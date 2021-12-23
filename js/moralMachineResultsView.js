@@ -22,14 +22,13 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
     }
     postRender() {
       let results = this.model.getResults();
-      console.log(results) 
       this.insertResults(results);
       this.model.checkIfAssessmentComplete();
       this.setReadyStatus();
       this.setupInviewCompletion(
         ".component__inner",
         this.model.checkCompletion.bind(this.model)
-      )
+      );
     }
 
     /**
@@ -58,7 +57,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
 
     insertResults(results) {
       // get getResults method from backbone model object
-      console.log(results)
+      console.log(results);
       // var results = this.model.getResults();
       // get results template
       let userAnswers = {
@@ -79,25 +78,23 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
           "Save people in car": 0,
         },
         "species-preference": {
+          "Save pets": 0,
           "Save humans": 0,
-          "Save animals": 0,
         },
         "upholding-the-law": {
           "Uphold Law": 0,
           "Disobey Law": 0,
         },
         "social-value-preference": {
-          authority: 0,
-          crime: 0,
+          "save professionals": 0,
+          "Save robbers": 0,
         },
         "avoid-intervention": {
+         "Avoid Intervention": 0,
           Intervene: 0,
-          "Avoid Intervention": 0,
         },
       };
-      // let userResults = results.counts;
-      // console.log(userResults);
-      
+
       function nestedToUnestedChanges() {
         if (results.counts == undefined) {
           return;
@@ -114,7 +111,6 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
             }
           }
         }
-        console.log(userAnswers);
       }
 
       try {
@@ -144,8 +140,8 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
         );
 
         if (hasNonZeroEntries) {
-          finalObj[key] = userAnswers[key];
-        }
+              finalObj[key] = userAnswers[key];
+          }
       });
 
       if (finalObj.length === 0) {
@@ -154,111 +150,140 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
         keysForView = Object.keys(finalObj);
         valuesForBar = Object.values(finalObj);
         valuesForBar.map((v) => {
-          let total = Object.values(v)[0] + Object.values(v)[1],
+          let 
+            total = Object.values(v)[0] + Object.values(v)[1],
+            percent = (Object.values(v)[0] / total) * 100,
             totalPercent = 100 / total,
             newCountOne = Object.values(v)[0] * totalPercent,
             newCountTwo = Object.values(v)[1] * totalPercent;
-
           arrForBar.push(newCountOne);
         });
       }
+
+      let 
+          half = keysForView.length / 2,
+          firstHalf = keysForView.slice(0, half),
+          secondHalf = keysForView.slice(half);
+
+      // let 
+      //     halfRatio = arrForBar.length / 2,
+      //     firstHalfRatio = arrForBar.slice(0, halfRatio),
+      //     secondHalfRatio = arrForBar.slice(half, halfRatio)
+
+      const 
+            list = arrForBar,
+            halfRatio = Math.ceil(list.length / 2),  
+            firstHalfRatio = list.slice(0, halfRatio),
+            secondHalfRatio = list.slice(-halfRatio)
+
+      let preference = [`
+                    <sub-section id="mostSaved" class="characters">
+                      <h1>Most Saved Characters</h1>
+                      <p> ${results.mostSaved} </p>
+                      <img
+                        id="${results.mostSaved}"
+                        class="character"
+                        src="./assets/character/${results.mostSaved.replaceAll(
+                          " ",
+                          "_"
+                        )}.png
+                      />
+                    </sub-section>
+                    <sub-section id="mostKilled" class="characters">
+                      <h1>Most Killed Characters</h1>
+                      <p> ${results.mostKilled} </p>
+                      <img
+                        id="${results.mostKilled}"
+                        class="character"
+                        src="./assets/character/${results.mostKilled.replaceAll(
+                          " ",
+                          "_"
+                        )}.png"
+                      />
+                    </sub-section>
+                
+              `]
       
+        // let styleLeft
 
-
-try {
-      const preference = 
-
-      `
-      <div id="top">
-              <sub-section id="mostSaved" class="characters">
-                <h1>Most Saved Characters</h1>
-                <p> ${results.mostKilled} </p>
-                <img 
-                  id="${results.mostSaved}" 
-                  class="character" 
-                  src="./assets/character/baby.png"
-                />
-              </sub-section>
-              <sub-section id="mostKilled" class="characters">
-                <h1>Most Killed Characters</h1>
-                <p> ${results.mostKilled} </p>
-                <img 
-                  id="${results.mostKilled}" 
-                  class="character"
-                  src="./assets/character/${results.mostKilled.replaceAll(" ", "_")}.png"
-                />
-              </sub-section>
-            </div>
-        `;
-    
-      let half = keysForView.length / 2,
-        firstHalf = keysForView.slice(0, half),
-        secondHalf = keysForView.slice(half);
-
-      let halfRatio = arrForBar.length / 2,
-        firstHalfRatio = arrForBar.slice(0, halfRatio),
-        secondHalfRatio = arrForBar.slice(half, halfRatio);
-
-      console.log(firstHalfRatio, secondHalfRatio);
-
-      $(".moralMachineResults__container").prepend(preference);
+      // function if first or second half ratio is 100 then set style left: 0em;
+      // function setStyleLeft(item) {
+      //     if (item === 100) {
+      //       styleLeft = "left: 0em;";
+      //     }
+      //   return styleLeft;
+      // }
+  
+      let leftArr = [];
       for (let i = 0; i < firstHalf.length; i++) {
         let leftSide = `
-      <sub-section id="question-${i}">
-      <h1>${firstHalf[i].replaceAll("-", " ")}</h1>
-    <panel>
-      <left><img width="60" height="60" src="./assets/${
-        firstHalf[i]
-      }_left.svg"/></left>
-      <result>
-      <div id="you" style="margin-left:${firstHalfRatio[i]}%">
-      <div id="you-bar""></div>
-      <div> You </div>
-      </div>
-           <div id="left"></div>
-           <div id="slider"></div>
-           <div id="middle"></div>
-           <div id="right"></div>
-        </result>
-        <right><img width="60" height="60" src="./assets/${
-          firstHalf[i]
-        }_right.svg"/></right>
-      </panel>
-      </sub-section> 
-      `;
-        $(".left-50").append(leftSide);
+            <sub-section id="question-${i}">
+            <h1>${firstHalf[i].replaceAll("-", " ")}</h1>
+          <panel>
+            <left><img width="60" height="60" src="./assets/${
+              firstHalf[i]
+            }_left.svg"/></left>
+            <result>
+            <div id="you" style="margin-left: ${firstHalfRatio[i]}%; ${firstHalfRatio[i] == 100 ? "left: 0em" : ""}">
+            <div id="you-bar"></div>
+            <div> You </div>
+            </div>
+                 <div id="left"></div>
+                 <div id="slider"></div>
+                 <div id="middle"></div>
+                 <div id="right"></div>
+              </result>
+              <right><img width="60" height="60" src="./assets/${
+                firstHalf[i]
+              }_right.svg"/></right>
+            </panel>
+            </sub-section>
+            `;
+        leftArr.push(leftSide);
       }
 
+      let rightArr = [];
       for (let i = 0; i < secondHalf.length; i++) {
         let rightSide = `
-        <sub-section id="question-${i}">
-      <h1>${secondHalf[i].replaceAll("-", " ")}</h1>
-      <panel>
-        <left><img width="60" height="60" src="./assets/${
-          secondHalf[i]
-        }_left.svg"/></left>
-        <result>
-        <div id="you" style="margin-left:${secondHalfRatio[i]}%">
-        <div id="you-bar""></div>
-        <div> You </div>
-        </div>
-          <div id="left"></div>
-          <div id="slider"></div>
-          <div id="middle"></div>
-          <div id="right"></div>
-     </result>
-     <right><img width="60" height="60" src="./assets/${
-       secondHalf[i]
-     }_right.svg"/></right>
-   </panel>
-      </sub-section>
-      `;
-        $(".right-50").append(rightSide);
+              <sub-section id="question-${i}">
+            <h1>${secondHalf[i].replaceAll("-", " ")}</h1>
+            <panel>
+              <left><img width="60" height="60" src="./assets/${
+                secondHalf[i]
+              }_left.svg"/></left>
+              <result>
+              <div id="you" style="margin-left:${secondHalfRatio[i]}% ">
+              <div id="you-bar"></div>
+              <div> You </div>
+              </div>
+                <div id="left"></div>
+                <div id="slider"></div>
+                <div id="middle"></div>
+                <div id="right"></div>
+           </result>
+           <right><img width="60" height="60" src="./assets/${
+             secondHalf[i]
+           }_right.svg"/></right>
+         </panel>
+            </sub-section>
+            `;
+        rightArr.push(rightSide);
       }
-    } catch (error) {
-      console.log(error);
+
+      const outputs = {
+        firstHalf: firstHalf,
+        secondHalf: secondHalf,
+        leftArr: [...leftArr],
+        rightArr: [...rightArr],
+        preference: [...preference],
+        firstHalfRatio: firstHalfRatio,
+        secondHalfRatio: secondHalfRatio,
+        mostSaved: results.mostSaved,
+        mostKilled: results.mostKilled,
+      };
+
+      this.model.set("_completionBody", outputs);
     }
-  }
   }
 
   MoralMachineResultsView.template = "assessmentResults";

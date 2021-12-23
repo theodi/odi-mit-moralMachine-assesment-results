@@ -18,15 +18,26 @@
           </div>
         </div>
         {{/if}}
-      
        <div class="moralMachineResults__container">
          <section id="results" style="display: block">
-         <sub-section class="left-50"></sub-section> 
+           <div id="top">
+           {{#each _completionBody.preference}}
+              {{{this}}} 
+           {{/each}}
+           </div>
+         <sub-section class="left-50">
+        {{#each _completionBody.leftArr}}
+          {{{this}}}
+        {{/each}}
+         </sub-section> 
          <div id="padding" class="padding"></div>
-         <sub-section class="right-50"></sub-section>
+         <sub-section class="right-50">
+        {{#each _completionBody.rightArr}}
+           {{{this}}}
+        {{/each}}
+         </sub-section>
         </section>
       </div>
-
         <button class="btn-text assessmentresults__retry-btn js-assessment-retry-btn">
           <span>
             {{#if _retry.button}}

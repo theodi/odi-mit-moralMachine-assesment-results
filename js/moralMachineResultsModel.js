@@ -20,7 +20,6 @@ define([
      * Checks to see if the assessment was completed in a previous session or not
      */
     checkIfAssessmentComplete() {
-      console.log('assesment compelte called')
       if (!Adapt.assessment || this.get('_assessmentId') === undefined) {
         return;
       }
@@ -60,8 +59,6 @@ define([
       assessmentModel._getAllQuestionComponents().forEach(component => {
           let arr = [];
 
-
-          // console.log('Hello!' + component.get('_id'));
           //Build the array that you need to render the results (the graphical thing)       
           let scoreObj = component.getActiveItems()[0].attributes.scoring
           
@@ -75,11 +72,7 @@ define([
           //Most killed + most saved 
           let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
           let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
-          console.log(killedLength)
-          console.log(savedLength)
-          console.log(
-          component.getActiveItems()[0].attributes["killed characters"]
-          )
+      
           
       function killedSaved(length, val, arrVal, countsVal) {
           let answer 
@@ -121,6 +114,7 @@ define([
       
       this.setFeedbackBand(state);
 
+  
       this.checkRetryEnabled(state);
 
       this.setFeedbackText();
@@ -137,17 +131,21 @@ define([
         keys: keys,
         values: values
         }
+
+        // this.set('feedback', results);
+        // console.log(this.get('feedback'))
+
       return this.setResults(results)
       }
 
-      
     getResults(){
       return this.results;
     }
+   
 
     setResults(object) {
       this.results = object;
-      console.log(object)
+      
     }
 
     setFeedbackBand(state) {
@@ -188,6 +186,7 @@ define([
         feedback,
         body: this.get('_completionBody')
       });
+     
     }
 
     setVisibility() {
