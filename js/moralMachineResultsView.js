@@ -95,6 +95,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
         },
       };
 
+
       function nestedToUnestedChanges() {
         if (results.counts == undefined) {
           return;
@@ -144,11 +145,17 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
           }
       });
 
+
+      console.log(JSON.stringify(finalObj) + ' hi');
+
       if (finalObj.length === 0) {
         return;
       } else {
         keysForView = Object.keys(finalObj);
         valuesForBar = Object.values(finalObj);
+        console.log(keysForView);
+        console.log(valuesForBar);
+        console.log(finalObj)
         valuesForBar.map((v) => {
           let 
             total = Object.values(v)[0] + Object.values(v)[1],
@@ -156,6 +163,8 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
             totalPercent = 100 / total,
             newCountOne = Object.values(v)[0] * totalPercent,
             newCountTwo = Object.values(v)[1] * totalPercent;
+            
+
           arrForBar.push(newCountOne);
         });
       }
@@ -204,18 +213,12 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
                     </sub-section>
               `]
       
-        // let styleLeft
 
-      // function if first or second half ratio is 100 then set style left: 0em;
-      // function setStyleLeft(item) {
-      //     if (item === 100) {
-      //       styleLeft = "left: 0em;";
-      //     }
-      //   return styleLeft;
-      // }
-
-      // <div id="you" style="margin-left: ${firstHalfRatio[i]}%; ${firstHalfRatio[i] == 100 ? "left: 0em" : ""}">
+    console.log(firstHalf)
   
+      let leftOne = "left: 0em;"
+
+      console.log(firstHalf)
       let leftArr = [];
       for (let i = 0; i < firstHalf.length; i++) {
         let leftSide = `
@@ -226,7 +229,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
               firstHalf[i]
             }_left.svg"/></left>
             <result>
-            <div id="you" style="margin-left: ${firstHalfRatio[i]}%;">
+            <div id="you" style="margin-left: ${firstHalfRatio[i]}%; ${firstHalfRatio[i] === 100 ? leftOne : "left: -12px;"}">
             <div id="you-bar"></div>
             <div> You </div>
             </div>
@@ -254,7 +257,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
                 secondHalf[i]
               }_left.svg"/></left>
               <result>
-              <div id="you" style="margin-left:${secondHalfRatio[i]}%">
+              <div id="you" style="margin-left:${secondHalfRatio[i]}%; ${secondHalfRatio[i] === 100 ? leftOne : "left: -12px;"}">
               <div id="you-bar"></div>
               <div> You </div>
               </div>
