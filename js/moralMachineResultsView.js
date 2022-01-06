@@ -56,10 +56,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
     }
 
     insertResults(results) {
-      // get getResults method from backbone model object
-      console.log(results);
-      // var results = this.model.getResults();
-      // get results template
+
       let userAnswers = {
         "age-preference": {
           "Save old": 0,
@@ -145,7 +142,6 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
           }
       });
 
-
       console.log(JSON.stringify(finalObj) + ' hi');
 
       if (finalObj.length === 0) {
@@ -173,12 +169,7 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
           half = keysForView.length / 2,
           firstHalf = keysForView.slice(0, half),
           secondHalf = keysForView.slice(half);
-
-      // let 
-      //     halfRatio = arrForBar.length / 2,
-      //     firstHalfRatio = arrForBar.slice(0, halfRatio),
-      //     secondHalfRatio = arrForBar.slice(half, halfRatio)
-
+          
       const 
             list = arrForBar,
             halfRatio = Math.ceil(list.length / 2),  
@@ -213,8 +204,6 @@ define(["core/js/adapt", "core/js/views/componentView"], function (
                     </sub-section>
               `]
       
-
-    console.log(firstHalf)
   
       let leftOne = "left: 0em;"
 
