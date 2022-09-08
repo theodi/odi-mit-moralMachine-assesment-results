@@ -17,13 +17,8 @@
 	margin-left: 1em;
 }
 
-#mostSaved {
-	float: left;
-}
+// if #you margin left is set to 100% then #you left:0em
 
-#mostKilled {
-	float: right;
-}
 .description-button {
 	position: relative;
     top: -454px;
@@ -142,6 +137,18 @@ table {
 	bottom: 45px;
 	display: none;
 }
+.character-summary {
+	min-width: 4px;
+    height: 55px;
+    display: inline;
+}
+.pet-summary {
+	height: 26px;
+    vertical-align: bottom;
+    margin-top: 35px;
+    margin-bottom: -26px;
+    min-width: 4px;
+}
 .left {
 	background-image: url('./img/L.png');
 }
@@ -153,6 +160,56 @@ table {
 	height: 500px;
 	cursor: pointer;
 }
+#mostSaved, #mostKilled {
+	display: inline-block;
+    width: 80%;
+    min-width: 200px;
+    border: 1px solid black;
+    border-radius: 10px;
+    margin-left: 4em;
+    margin-right: 3em;
+    margin-bottom: 1em;
+    padding-top: 1em;
+}
+#mostSaved table {
+	margin-left: auto;
+	margin-right: auto;
+}
+#mostSaved td {
+	padding-left: 4px;
+	padding-right: 4px;
+}
+@media only screen and (max-width: 800px) {
+	#mostSaved, #mostKilled {
+		display: inline-block;
+    	width: 80%;
+    	min-width: 200px;
+    	border: 1px solid black;
+    	border-radius: 10px;
+    	margin-left: 1em;
+    	margin-right: 1em;
+    	margin-bottom: 1em;
+    	padding-top: 1em;
+    }
+}
+.moralMachineResults__container #main sub-section {
+	display: inline-block;
+    width: 48%;
+    min-width: 430px;
+}
+.moralMachineResults__container .results-img {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    max-width: 45px;
+}
+.moralMachineResults__container panel {
+    display: inherit;
+    margin-top: -2em;
+}
+.moralMachineResults__container h3 {
+    margin: 0;
+}
 #results {
 	max-width: 100%;
 	min-width: 400px;
@@ -161,31 +218,12 @@ table {
 #results sub-section, #results sub-section panel {
 	display: inline-block;
 }
-.left-50 {
-	margin-top: 1.5em;
-	width: 45%;
-	display: inline-block;
-	vertical-align: top;
-}
-.right-50 {
-	margin-top: 1.5em;
-	width: 45%;
-	display: inline-block;
-	vertical-align: top;
-}
 .padding {
 	display: inline-block;
 	width: 20px;
 }
 #results sub-section panel img {
 	display: inline;
-}
-.left-50 h1, .right-50 h1 {
-	margin: 0;
-	margin-bottom: -40px;
-	font-size: 1em;
-	margin-top: 1em;
-	font-weight: 100;
 }
 left, right, result {
 	display: table-cell;
@@ -194,12 +232,15 @@ left, right, result {
 }
 left {
 	padding-right: 1em;
+	line-height: 1.15;
 }
 right {
 	padding-left: 1em;
+	line-height: 1.15;
 }
 result {
 	min-width: 290px;
+	
 	vertical-align: top;
 }
 result #slider {
@@ -213,38 +254,27 @@ result #middle, result #left, result #right {
 }
 result #middle {
 	margin-left: 50%;
-	top: -14px;
+	top: -13px;
 }
 result #left {
 	top: 13px;
 }
 result #right {
 	margin-left: 100%;
-	top: -34px;
+	top: -33px;
 }
 result #you {
-  position: relative;
-  top: 60px !important;
-  text-align: center;
-  left: -0.75em;
-  max-width: fit-content;
-  z-index: 10;
+    position: relative;
+    top: 57px;
+    text-align: center;
+    max-width: fit-content;
+    z-index: 10;
 }
 result #you-bar {
 	width: 5px;
     height: 20px;
-    margin-left: auto;
-    margin-right: auto;
     background-color: orange;
     border: 1px solid gray;
-}
-@media only screen and (max-width: 950px) {
-	.left-50, .right-50 {
-		display: block;
-    	margin-left: auto;
-    	margin-right: auto;
-    	width: auto;
-    }
 }
 @media only screen and (max-width: 650px) {
 	.characters h1 {

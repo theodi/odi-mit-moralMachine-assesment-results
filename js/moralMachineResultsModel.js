@@ -25,7 +25,6 @@ define([
       }
 
       const assessmentModel = Adapt.assessment.get(this.get('_assessmentId'));
-
       if (!assessmentModel || assessmentModel.length === 0) return;
 
       const state = assessmentModel.getState();
@@ -42,60 +41,142 @@ define([
       if (this.get('_assessmentId') === undefined ||
           this.get('_assessmentId') !== state.id) return;
           
-          let 
-          // counting choices
-              counts = {},
-          //  most killed + most saved set up
-              savedCounts = {},
-              killedCounts = {},
-              savedPrefArr = [],
-              killedPrefArr = [],
-              finalArr = [],
-              mostKilled,
-              mostSaved;
+      let 
+        // counting choices
+        counts = {},
+        //  most killed + most saved set up
+        savedCount = {},
+        allCharacterCount = {},
+        finalArr = [],
+        mostKilled,
+        mostSaved;
               
-        // view()
+      // view()
       // TODO: Jack this is the new bit and the only real difference so far from the vanilla AssessmentResults component. It might not even belong here but it gives you an idea.
       assessmentModel._getAllQuestionComponents().forEach(component => {
-          let arr = [];
+        let arr = [];
 
-          //Build the array that you need to render the results (the graphical thing)       
-          let scoreObj = component.getActiveItems()[0].attributes.scoring
-          
-          for(let i = 0; i < scoreObj.length; i++) {
-           arr.push(scoreObj[i].choices)
+        for(let i = 0; i < 2; i++) {
+          var item = component.getChildren().models[i].attributes.scoring;
+          for (let j =0; j < item.length; j++) {
+            if (item[j].choices == "Avoid Intervention") {
+              counts["Intervene"] = (counts["Intervene"] || 0) + 1;
+            }
+            if (item[j].choices == "Save people in car") {
+              counts["Save pedestrians"] = (counts["Save pedestrians"] || 0) + 1;
+            }
+            if (item[j].choices == "Uphold law") {
+              counts["Disobey law"] = (counts["Disobey law"] || 0) + 1;
+            }
+            if (item[j].choices == "Save pets") {
+              counts["Save humans"] = (counts["Save humans"] || 0) + 1;
+            }
+            if (item[j].choices == "Save more people") {
+              counts["Save less people"] = (counts["Save less people"] || 0) + 1;
+            }
+            if (item[j].choices == "Save robbers") {
+              counts["Save professionals"] = (counts["Save professionals"] || 0) + 1;
+            }
+            if (item[j].choices == "Save old") {
+              counts["Save young"] = (counts["Save young"] || 0) + 1;
+            }
           }
-
-          arr.forEach((x) => {
-                counts[x] = (counts[x] || 0) + 1;
-              })
-          //Most killed + most saved 
-          let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
-          let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
-      
-          
-      function killedSaved(length, val, arrVal, countsVal) {
-          let answer 
-          for(let i = 0; i < length; i++) {
-          arrVal.push(component.getActiveItems()[0].attributes[`${val} characters`][i]['character']);
-          }
-
-         arrVal.forEach((x) => {
-            countsVal[x] = (countsVal[x] || 0) + 1;
-          })
-          try {
-         answer = Object.keys(countsVal).reduce((a, b) => countsVal[a] > countsVal[b] ? a : b)
-          } catch(err) {
-            answer = 'No characters were saved or killed'
-          }
-        return answer 
         }
 
-          mostKilled = killedSaved(killedLength, 'killed', killedPrefArr, killedCounts)
-          mostSaved = killedSaved(savedLength, 'saved', savedPrefArr, savedCounts)
-    
-          finalArr.push([mostKilled, mostSaved, counts])
+        let scoreObj = {};
+        //Build the array that you need to render the results (the graphical thing)       
+        try {
+          scoreObj = component.getActiveItems()[0].attributes.scoring;
+        } catch (error) {
+          //Assume assessment isn't in fact complete and return.
+          return;
+        }
+        
+        for(let i = 0; i < scoreObj.length; i++) {
+         arr.push(scoreObj[i].choices)
+        }
+
+        arr.forEach((x) => {
+          counts[x] = (counts[x] || 0) + 1;
+          if (x == "Avoid Intervention") { 
+             counts["Intervene"] = counts["Intervene"] - 1;
+          }
+          if (x == "Save people in car") {
+            counts["Save pedestrians"] = counts["Save pedestrians"] - 1;
+          }
+          if (x == "Uphold law") {
+            counts["Disobey law"] = counts["Disobey law"] - 1;
+          }
+          if (x == "Save pets") {
+            counts["Save humans"] = counts["Save humans"] - 1;
+          }
+          if (x == "Save more people") {
+            counts["Save less people"] = counts["Save less people"] - 1;
+          }
+          if (x == "Save robbers") {
+            counts["Save professionals"] = counts["Save professionals"] - 1;
+          }
+          if (x == "Save old") {
+            counts["Save young"] = counts["Save young"] - 1;
+          }
+        })
+  
+        //Most killed + most saved 
+        let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
+        let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
+      
+        function getCharacterCounts(activeItem) {
+          var saved = activeItem.attributes["saved characters"];
+          for(let i=0;i<saved.length;i++) {
+            var Character = saved[i]["character"];
+            var count = saved[i]["number"];
+            allCharacterCount[Character] = (allCharacterCount[Character] || 0) + count;
+          }
+          var killed = activeItem.attributes["killed characters"];
+          for(let i=0;i<killed.length;i++) {
+            var Character = killed[i]["character"];
+            var count = killed[i]["number"];
+            allCharacterCount[Character] = (allCharacterCount[Character] || 0) + count;
+          }
+          return allCharacterCount;
+        }
+
+        function getSavedCounts(activeItem) {
+          var saved = activeItem.attributes["saved characters"];
+          for(let i=0;i<saved.length;i++) {
+            var Character = saved[i]["character"];
+            var count = saved[i]["number"];
+            var gender = Character.split(" ")[0];
+            counts[gender] = (counts[gender] || 0) + count;
+            savedCount[Character] = (savedCount[Character] || 0) + count;
+          }
+          return savedCount;
+        }
+
+        allCharacterCount = getCharacterCounts(component.getActiveItems()[0]);
+        savedCount = getSavedCounts(component.getActiveItems()[0]);    
+        finalArr.push([savedCount, allCharacterCount, counts])
       });
+
+      let keys = {};
+      let values = {};
+
+      try {
+        keys = Object.values(finalArr[0][2])
+        values = Object.keys(finalArr[0][2])
+      } catch(error) {
+        return;
+      }
+
+      let results = {
+        counts: finalArr[0][2],
+        savedCount: finalArr[0][0],
+        allCharacterCount: finalArr[0][1],
+        keys: keys,
+        values: values
+      }
+
+      this.setResults(results)
 
       /*
       make shortcuts to some of the key properties in the state object so that
@@ -109,66 +190,34 @@ define([
         score: state.counts,
         scoreAsPercent: state.scoreAsPercent,
         maxScore: state.maxScore,
-        isPass: state.isPass
+        isPass: state.isPass,
+        results: results
       });
-      
-      this.setFeedbackBand(state);
 
-  
       this.checkRetryEnabled(state);
 
-      this.setFeedbackText();
+      this.setFeedbackText(this.getFeedbackText(results));
 
       this.toggleVisibility(true);
 
-      let keys = Object.values(finalArr[0][2])
-      let values = Object.keys(finalArr[0][2])
-
-      results = {
-        counts: finalArr[0][2],
-        mostKilled: finalArr[0][0],
-        mostSaved: finalArr[0][1],
-        keys: keys,
-        values: values
-        }
-
-        // this.set('feedback', results);
-        // console.log(this.get('feedback'))
-
-      return this.setResults(results)
-      }
+    }
 
     getResults(){
       return this.results;
     }
-   
 
     setResults(object) {
       this.results = object;
       
     }
 
-    setFeedbackBand(state) {
-      const scoreProp = state.isPercentageBased ? 'scoreAsPercent' : 'score';
-      const bands = _.sortBy(this.get('_bands'), '_score');
-
-      for (let i = (bands.length - 1); i >= 0; i--) {
-        const isScoreInBandRange = (state[scoreProp] >= bands[i]._score);
-        if (!isScoreInBandRange) continue;
-
-        this.set('_feedbackBand', bands[i]);
-        break;
-      }
-    }
-
     checkRetryEnabled(state) {
       const assessmentModel = Adapt.assessment.get(state.id);
       if (!assessmentModel.canResetInPage()) return false;
 
-      const feedbackBand = this.get('_feedbackBand');
-      const isRetryEnabled = (feedbackBand && feedbackBand._allowRetry) !== false;
+      const isRetryEnabled = true;
       const isAttemptsLeft = (state.attemptsLeft > 0 || state.attemptsLeft === 'infinite');
-      const showRetry = isRetryEnabled && isAttemptsLeft && (!state.isPass || state.allowResetIfPassed);
+      const showRetry = isRetryEnabled && isAttemptsLeft;
 
       this.set({
         _isRetryEnabled: showRetry,
@@ -176,18 +225,207 @@ define([
       });
     }
 
-    setFeedbackText() {
-      const feedbackBand = this.get('_feedbackBand');
+    setFeedbackText(outputs) {
 
-      // ensure any handlebars expressions in the .feedback are handled...
-      const feedback = feedbackBand ? Handlebars.compile(feedbackBand.feedback)(this.toJSON()) : '';
+      /*Template example
+      <div class="moralMachineResults__container"><div id="top">{{{preference}}}</div><div  id="main">{{{save-people-in-car}}} {{{avoid-intervention}}}</div></div>
+      */
 
+      var template = Handlebars.compile(this.get('_feedbackTemplate'));
+      var feedback = template(outputs);
       this.set({
         feedback,
         body: this.get('_completionBody')
       });
-     
     }
+
+    getUserAnswersTemplate() {
+      // Set results template
+      let userAnswers = {
+        "age-preference": {
+          "Save old": 0,
+          "Save young": 0,
+        },
+        "saving-more-lives": {
+          "Save less people": 0,
+          "Save more people": 0,
+        },
+        "gender-preference": {
+          "Female": 0,
+          "Male": 0,
+        },
+        "save-people-in-car": {
+          "Save people in car": 0,
+          "Save pedestrians": 0,
+        },
+        "species-preference": {
+          "Save humans": 0,
+          "Save pets": 0,
+        },
+        "upholding-the-law": {
+          "Uphold law": 0,
+          "Disobey law": 0,
+        },
+        "social-value-preference": {
+          "Save professionals": 0,
+          "Save robbers": 0,
+        },
+        "avoid-intervention": {
+         "Avoid Intervention": 0,
+         "Intervene": 0,
+        },
+      };
+      return userAnswers;
+    }
+
+    nestedToUnestedChanges(results,userAnswers) {
+      //Populate the userAnswers object
+      if (results.counts == undefined) {
+        return;
+      } else {
+        // loop on the changingObj
+        for (const [key1, value] of Object.entries(results.counts)) {
+          // loop on the first obj for every entry of the changing obj
+          for (const [key2, _] of Object.entries(userAnswers)) {
+            // checking if the obj has a property of the changing obj's key
+            if (userAnswers[key2].hasOwnProperty(key1)) {
+              // adding the value
+              userAnswers[key2][key1] += value;
+            }
+          }
+        }
+      }
+      return userAnswers;
+    }
+
+    removeZeroValues(userAnswers) {
+      // Remove user answers where there is no data (zero as the value)
+      
+      const keys = Object.keys(userAnswers);
+      const values = Object.values(userAnswers);
+
+      keys.map((key) => {
+        const property = userAnswers[key];
+        const propertyKeys = Object.keys(userAnswers[key]);
+      });
+
+      const finalObj = {};
+
+      keys.forEach((key) => {
+        const property = userAnswers[key];
+        const propertyKeys = Object.keys(property);
+        const hasNonZeroEntries = propertyKeys.some(
+          (propertyKey) => property[propertyKey] !== 0
+        );
+
+        if (hasNonZeroEntries) {
+              finalObj[key] = userAnswers[key];
+          }
+      });
+
+      return finalObj;
+    }
+
+    getFeedbackText(results) {
+      let outputs = {};
+      let userAnswers = this.getUserAnswersTemplate();
+      try {
+        userAnswers = this.nestedToUnestedChanges(results,userAnswers)
+      } catch (error) {
+        console.log(error);
+      }
+      let finalObj = this.removeZeroValues(userAnswers);
+
+      var savedTableDetail = "";
+      var percentages = [];
+      
+      Object.keys(results["allCharacterCount"]).forEach(character => {
+        let total = results["allCharacterCount"][character];
+        let saved = results.savedCount[character] || 0;
+        percentages.push([character,(saved/total || 0)]);
+      });
+
+      percentages.sort(function(a, b) {
+        return b[1] - a[1];
+      });
+      
+      percentages.forEach(function(item) {
+        let character = item[0];
+        let total = results["allCharacterCount"][character];
+        let saved = results.savedCount[character] || 0;
+        if (character.split(" ")[0] == "Pet") {
+          savedTableDetail += "<td><img class='pet-summary' src='assets/character/" + character.replaceAll(" ","_") + ".png'></img><br/>" + saved + "/" + total + "</td>"  
+        } else {
+          savedTableDetail += "<td><img class='character-summary' src='assets/character/" + character.replaceAll(" ","_") + ".png'></img><br/>" + saved + "/" + total + "</td>"
+        }
+      });
+        
+      outputs["characters-saved"] = 
+      `
+      <sub-section id="mostSaved" class="characters">
+        <h3>Saved characters / Total</h3>
+        <table id="Characters">
+          <tr>
+          ${savedTableDetail}
+          </tr>
+        </table>
+      </sub-section>
+      `;
+
+      let keysForView;
+      let arrForBar = [];
+      let valuesForBar = [];
+
+      if (finalObj.length === 0) {
+        return;
+      } else {
+        keysForView = Object.keys(finalObj);
+        valuesForBar = Object.values(finalObj);
+        valuesForBar.map((v) => {
+          let 
+            total = Object.values(v)[0] + Object.values(v)[1],
+            percent = (Object.values(v)[0] / total) * 100,
+            totalPercent = 100 / total,
+            newCountOne = Object.values(v)[0] * totalPercent;
+            //newCountTwo = Object.values(v)[1] * totalPercent;
+          arrForBar.push(newCountOne);
+        });
+      }
+      
+      const 
+        list = arrForBar,
+        halfRatio = Math.ceil(list.length / 2),  
+        firstHalfRatio = list.slice(0, halfRatio),
+        secondHalfRatio = list.slice(-halfRatio);
+
+      var index = 0;
+      var offsets = {};
+      keysForView.forEach(key => {
+        outputs[key] = `
+          <sub-section id="question-${key}">
+            <h3>${key.replaceAll("-", " ")}</h3>
+            <panel>
+              <left><img class="results-img" src="./assets/${key}_left.svg"/></left>
+              <result>
+                <div id="you" style="margin-left: ${arrForBar[index]}%;">
+                  <div id="you-bar"></div>
+                  <div> You </div>
+                </div>
+                <div id="left"></div>
+                <div id="slider"></div>
+                <div id="middle"></div>
+                <div id="right"></div>
+              </result>
+              <right><img class="results-img" src="./assets/${key}_right.svg"/></right>
+            </panel>
+          </sub-section>
+        `;
+        index++;
+      });
+
+      return outputs;
+    }
+
 
     setVisibility() {
       if (!Adapt.assessment) return;
@@ -241,7 +479,6 @@ define([
         body: this.get('originalBody'),
         state: null,
         feedback: '',
-        _feedbackBand: null,
         retryFeedback: '',
         _isRetryEnabled: false
       });

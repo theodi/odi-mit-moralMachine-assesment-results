@@ -120,51 +120,15 @@
       "help": "This text overwrites the standard body attribute upon completion of the assessment. It may make use of the following variables: {{attemptsSpent}}, {{attempts}}, {{attemptsLeft}}, {{{score}}}, {{{maxScore}}}. {{{feedback}}}, representing the feedback assigned to the appropriate band, is also allowed.",
       "translatable": true
     },
-    "_bands": {
-      "type": "array",
-      "required": true,
-      "title": "Bands",
-      "items": {
-        "type": "object",
-        "required": true,
-        "properties": {
-          "_score": {
-            "type": "number",
-            "required": false,
-            "title": "Score",
-            "inputType": "Number",
-            "validators": ["number"],
-            "help": "Enter a value representing the raw score or percentage for the start of the range."
-          },
-          "feedback": {
-            "type": "string",
-            "required": false,
-            "default": "",
-            "inputType": "TextArea",
-            "validators": [],
-            "translatable": true,
-            "help": "This text will be displayed to the learner when the learner's score falls within this band's range."
-          },
-          "_allowRetry": {
-            "type": "boolean",
-            "required": true,
-            "default": true,
-            "title": "Allow Retry",
-            "inputType": "Checkbox",
-            "validators": [],
-            "help": "Determines whether the learner will be allowed to re-attempt the assessment. If not set, the learner will not be allowed to retry the assessment regardless of any remaining attempts."
-          },
-          "_classes": {
-            "type": "string",
-            "required": false,
-            "default": "",
-            "title": "Classes",
-            "inputType": "Text",
-            "validators": [],
-            "help": "Classes to be applied to the containing article. Allows for custom styling based on the band the learner's score falls into."
-          }
-        }
-      }
+    "_feedbackTemplate": {
+      "title": "Feedback Template",
+      "type": "string",
+      "required": false,
+      "default": "",
+      "inputType": "TextArea",
+      "validators": [],
+      "translatable": true,
+      "help": "This is the template that will be compiled into the variable {{{feedback}}}. It may make use of the following varaibales: {{{characters-saved}}}, {{{age-preference}}}, {{{saving-more-lives}}}, {{{gender-preference}}}, {{{save-people-in-car}}}, {{{species-preference}}}, {{{upholding-the-law}}}, {{{social-value-preference}}} and {{{avoid-intervention}}}."
     }
   }
 }
