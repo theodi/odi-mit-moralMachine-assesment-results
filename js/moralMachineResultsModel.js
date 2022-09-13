@@ -36,6 +36,68 @@ define([
       this.setVisibility();
     }
    
+    initScoring(scoreObj,counts,multiplier) {
+      for (let j =0; j < scoreObj.length; j++) {
+        if (scoreObj[j].choices == "Avoid Intervention") {
+          counts["Intervene"] = (counts["Intervene"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save people in car") {
+          counts["Save pedestrians"] = (counts["Save pedestrians"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Uphold law") {
+          counts["Disobey law"] = (counts["Disobey law"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save pets") {
+          counts["Save humans"] = (counts["Save humans"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save more people") {
+          counts["Save less people"] = (counts["Save less people"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save robbers") {
+          counts["Save professionals"] = (counts["Save professionals"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save old") {
+          counts["Save young"] = (counts["Save young"] || 0) + (1 * multiplier);
+        }
+      }
+      return counts;
+    }
+
+    updateScoring(scoreObj,counts,multiplier) {
+
+      let arr = [];
+
+      for(let i = 0; i < scoreObj.length; i++) {
+       arr.push(scoreObj[i].choices)
+      }
+
+      arr.forEach((x) => {
+        counts[x] = (counts[x] || 0) + (1 * multiplier);
+        if (x == "Avoid Intervention") { 
+         counts["Intervene"] = counts["Intervene"] - (1 * multiplier);
+        }
+        if (x == "Save people in car") {
+          counts["Save pedestrians"] = counts["Save pedestrians"] - (1 * multiplier);
+        }
+        if (x == "Uphold law") {
+          counts["Disobey law"] = counts["Disobey law"] - (1 * multiplier);
+        }
+        if (x == "Save pets") {
+          counts["Save humans"] = counts["Save humans"] - (1 * multiplier);
+        }
+        if (x == "Save more people") {
+          counts["Save less people"] = counts["Save less people"] - (1 * multiplier);
+        }
+        if (x == "Save robbers") {
+          counts["Save professionals"] = counts["Save professionals"] - (1 * multiplier);
+        }
+        if (x == "Save old") {
+          counts["Save young"] = counts["Save young"] - (1 * multiplier);
+        }
+      })
+
+       return counts;
+    }
 
     onAssessmentComplete(state, assessmentModel) {
       if (this.get('_assessmentId') === undefined ||
@@ -44,6 +106,7 @@ define([
       let 
         // counting choices
         counts = {},
+        othersCounts = {},
         //  most killed + most saved set up
         savedCount = {},
         allCharacterCount = {},
@@ -54,73 +117,42 @@ define([
       // view()
       // TODO: Jack this is the new bit and the only real difference so far from the vanilla AssessmentResults component. It might not even belong here but it gives you an idea.
       assessmentModel._getAllQuestionComponents().forEach(component => {
-        let arr = [];
+        console.log(component.get("_id"));
+        //Set up the potential counts from the attributes of both children
+
+        var responses = [
+          { "id": "1", "count": 2 },
+          { "id": "2", "count": 1 }
+        ]
+        var totalResponses = 0;
+        responses.map(response => {
+          totalResponses += response.count;
+        });
 
         for(let i = 0; i < 2; i++) {
           var item = component.getChildren().models[i].attributes.scoring;
-          for (let j =0; j < item.length; j++) {
-            if (item[j].choices == "Avoid Intervention") {
-              counts["Intervene"] = (counts["Intervene"] || 0) + 1;
-            }
-            if (item[j].choices == "Save people in car") {
-              counts["Save pedestrians"] = (counts["Save pedestrians"] || 0) + 1;
-            }
-            if (item[j].choices == "Uphold law") {
-              counts["Disobey law"] = (counts["Disobey law"] || 0) + 1;
-            }
-            if (item[j].choices == "Save pets") {
-              counts["Save humans"] = (counts["Save humans"] || 0) + 1;
-            }
-            if (item[j].choices == "Save more people") {
-              counts["Save less people"] = (counts["Save less people"] || 0) + 1;
-            }
-            if (item[j].choices == "Save robbers") {
-              counts["Save professionals"] = (counts["Save professionals"] || 0) + 1;
-            }
-            if (item[j].choices == "Save old") {
-              counts["Save young"] = (counts["Save young"] || 0) + 1;
-            }
-          }
+          counts = this.initScoring(item,counts,1);
+          othersCounts = this.initScoring(item,othersCounts,totalResponses);
         }
 
+        //Prepare othersCounts to match the scoring counts so far.
+        responses.map(response => {
+            var id = response.id;
+            var multiplier = response.count;
+            var scoreObj = component.getChildren().models[id-1].attributes.scoring;
+            othersCounts = this.updateScoring(scoreObj,othersCounts,multiplier);
+        });
+
+        // Get and process the active item. 
         let scoreObj = {};
         //Build the array that you need to render the results (the graphical thing)       
         try {
           scoreObj = component.getActiveItems()[0].attributes.scoring;
+          counts = this.updateScoring(scoreObj,counts,1);
         } catch (error) {
-          //Assume assessment isn't in fact complete and return.
           return;
         }
-        
-        for(let i = 0; i < scoreObj.length; i++) {
-         arr.push(scoreObj[i].choices)
-        }
 
-        arr.forEach((x) => {
-          counts[x] = (counts[x] || 0) + 1;
-          if (x == "Avoid Intervention") { 
-             counts["Intervene"] = counts["Intervene"] - 1;
-          }
-          if (x == "Save people in car") {
-            counts["Save pedestrians"] = counts["Save pedestrians"] - 1;
-          }
-          if (x == "Uphold law") {
-            counts["Disobey law"] = counts["Disobey law"] - 1;
-          }
-          if (x == "Save pets") {
-            counts["Save humans"] = counts["Save humans"] - 1;
-          }
-          if (x == "Save more people") {
-            counts["Save less people"] = counts["Save less people"] - 1;
-          }
-          if (x == "Save robbers") {
-            counts["Save professionals"] = counts["Save professionals"] - 1;
-          }
-          if (x == "Save old") {
-            counts["Save young"] = counts["Save young"] - 1;
-          }
-        })
-  
         //Most killed + most saved 
         let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
         let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
@@ -155,7 +187,7 @@ define([
 
         allCharacterCount = getCharacterCounts(component.getActiveItems()[0]);
         savedCount = getSavedCounts(component.getActiveItems()[0]);    
-        finalArr.push([savedCount, allCharacterCount, counts])
+        finalArr.push([savedCount, allCharacterCount, counts, othersCounts])
       });
 
       let keys = {};
@@ -170,6 +202,7 @@ define([
 
       let results = {
         counts: finalArr[0][2],
+        othersCounts: finalArr[0][3],
         savedCount: finalArr[0][0],
         allCharacterCount: finalArr[0][1],
         keys: keys,
@@ -278,13 +311,13 @@ define([
       return userAnswers;
     }
 
-    nestedToUnestedChanges(results,userAnswers) {
+    nestedToUnestedChanges(counts,userAnswers) {
       //Populate the userAnswers object
-      if (results.counts == undefined) {
+      if (counts == undefined) {
         return;
       } else {
         // loop on the changingObj
-        for (const [key1, value] of Object.entries(results.counts)) {
+        for (const [key1, value] of Object.entries(counts)) {
           // loop on the first obj for every entry of the changing obj
           for (const [key2, _] of Object.entries(userAnswers)) {
             // checking if the obj has a property of the changing obj's key
@@ -329,12 +362,15 @@ define([
     getFeedbackText(results) {
       let outputs = {};
       let userAnswers = this.getUserAnswersTemplate();
+      let othersAnswers = this.getUserAnswersTemplate();
       try {
-        userAnswers = this.nestedToUnestedChanges(results,userAnswers)
+        userAnswers = this.nestedToUnestedChanges(results.counts,userAnswers);
+        othersAnswers = this.nestedToUnestedChanges(results.othersCounts,userAnswers);
       } catch (error) {
         console.log(error);
       }
       let finalObj = this.removeZeroValues(userAnswers);
+      othersAnswers = this.removeZeroValues(othersAnswers);
 
       var savedTableDetail = "";
       var percentages = [];
@@ -372,6 +408,8 @@ define([
       </sub-section>
       `;
 
+      //Place we now need to handle the userAnser and the answer of others.
+
       let keysForView;
       let arrForBar = [];
       let valuesForBar = [];
@@ -387,8 +425,7 @@ define([
             percent = (Object.values(v)[0] / total) * 100,
             totalPercent = 100 / total,
             newCountOne = Object.values(v)[0] * totalPercent;
-            //newCountTwo = Object.values(v)[1] * totalPercent;
-          arrForBar.push(newCountOne);
+            arrForBar.push(newCountOne);
         });
       }
       
