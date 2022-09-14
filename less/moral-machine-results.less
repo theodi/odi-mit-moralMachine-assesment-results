@@ -205,7 +205,6 @@ table {
 }
 .moralMachineResults__container panel {
     display: inherit;
-    margin-top: -2em;
 }
 .moralMachineResults__container h3 {
     margin: 0;
@@ -225,56 +224,26 @@ table {
 #results sub-section panel img {
 	display: inline;
 }
-left, right, result {
-	display: table-cell;
-	text-align: center;
-	vertical-align: middle; 
-}
-left {
-	padding-right: 1em;
-	line-height: 1.15;
-}
-right {
-	padding-left: 1em;
-	line-height: 1.15;
-}
-result {
-	min-width: 290px;
-	
-	vertical-align: top;
-}
-result #slider {
-	border-top: 7px solid gray;
-}
-result #middle, result #left, result #right {
-    width: 5px;
-    height: 20px;
-    background-color: gray;
-    position: relative;
-}
-result #middle {
-	margin-left: 50%;
-	top: -13px;
-}
-result #left {
-	top: 13px;
-}
-result #right {
-	margin-left: 100%;
-	top: -33px;
-}
-result #you {
-    position: relative;
-    top: 57px;
-    text-align: center;
-    max-width: fit-content;
-    z-index: 10;
-}
-result #you-bar {
-	width: 5px;
-    height: 20px;
-    background-color: orange;
-    border: 1px solid gray;
+.moralMachineResults__container panel {
+	left, right, result {
+		display: table-cell;
+		text-align: center;
+		vertical-align: middle; 
+	}
+	left {
+		padding-right: 1em;
+		line-height: 1.15;
+		float: left;
+	}
+	right {
+		padding-left: 1em;
+		line-height: 1.15;
+		float: right;
+	}
+	canvas .result {
+		min-width: 400px;
+		vertical-align: top;
+	}
 }
 @media only screen and (max-width: 650px) {
 	.characters h1 {

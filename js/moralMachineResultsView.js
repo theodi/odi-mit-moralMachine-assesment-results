@@ -1,4 +1,4 @@
-define(["core/js/adapt", "core/js/views/componentView"], function (
+define(["core/js/adapt", "core/js/views/componentView", "libraries/canvas-helper"], function (
   Adapt,
   ComponentView
 ) {

@@ -98,16 +98,61 @@ define([
 
        return counts;
     }
+    async getDataFromXAPI(componentID) {
+      var xapiQueryEndpoint = Adapt.config.get('_xapi')._queryURL;
+      var xapiQueryEndpoint = "https://learning-locker-api.herokuapp.com/"
+      var activityID = Adapt.config.get('_xapi')._activityID;
+      var componentURI = encodeURIComponent(activityID + "#/id/" + componentID);
 
-    onAssessmentComplete(state, assessmentModel) {
+      var dataURL = xapiQueryEndpoint + "?activity=" + componentURI;
+      const fetchJson = async () => {
+        const response = await fetch(dataURL)
+        const json = await response.json()
+        return json
+      }
+      return await fetchJson();
+    }
+
+    async getOtherCounts(assessmentModel) {
+      let othersCounts = {};
+      assessmentModel._getAllQuestionComponents().forEach(async (component) => {
+        var responses = []
+        if (Adapt.config.get('_xapi')._isEnabled) {
+          console.log("Attempting to get data");
+          var data = await this.getDataFromXAPI(component.get("_id"));
+          responses = data.responses || null;
+        }
+        
+        var totalResponses = 0;
+        responses.map(response => {
+          totalResponses += response.count;
+        });
+        
+        for(let i = 0; i < 2; i++) {
+          var item = component.getChildren().models[i].attributes.scoring;
+          othersCounts = this.initScoring(item,othersCounts,totalResponses);
+        }
+          //Prepare othersCounts to match the scoring counts so far.
+        
+        responses.map(response => {
+            var id = response.id;
+            var multiplier = response.count;
+            var scoreObj = component.getChildren().models[id-1].attributes.scoring;
+            othersCounts = this.updateScoring(scoreObj,othersCounts,multiplier);
+        });
+      });
+      return othersCounts;
+    }
+
+    async onAssessmentComplete(state, assessmentModel) {
       if (this.get('_assessmentId') === undefined ||
           this.get('_assessmentId') !== state.id) return;
           
       let 
         // counting choices
         counts = {},
-        othersCounts = {},
         //  most killed + most saved set up
+        othersCounts = await this.getOtherCounts(assessmentModel),
         savedCount = {},
         allCharacterCount = {},
         finalArr = [],
@@ -116,33 +161,13 @@ define([
               
       // view()
       // TODO: Jack this is the new bit and the only real difference so far from the vanilla AssessmentResults component. It might not even belong here but it gives you an idea.
+
       assessmentModel._getAllQuestionComponents().forEach(component => {
-        console.log(component.get("_id"));
-        //Set up the potential counts from the attributes of both children
-
-        var responses = [
-          { "id": "1", "count": 2 },
-          { "id": "2", "count": 1 }
-        ]
-        var totalResponses = 0;
-        responses.map(response => {
-          totalResponses += response.count;
-        });
-
         for(let i = 0; i < 2; i++) {
           var item = component.getChildren().models[i].attributes.scoring;
           counts = this.initScoring(item,counts,1);
-          othersCounts = this.initScoring(item,othersCounts,totalResponses);
         }
-
-        //Prepare othersCounts to match the scoring counts so far.
-        responses.map(response => {
-            var id = response.id;
-            var multiplier = response.count;
-            var scoreObj = component.getChildren().models[id-1].attributes.scoring;
-            othersCounts = this.updateScoring(scoreObj,othersCounts,multiplier);
-        });
-
+        
         // Get and process the active item. 
         let scoreObj = {};
         //Build the array that you need to render the results (the graphical thing)       
@@ -187,7 +212,7 @@ define([
 
         allCharacterCount = getCharacterCounts(component.getActiveItems()[0]);
         savedCount = getSavedCounts(component.getActiveItems()[0]);    
-        finalArr.push([savedCount, allCharacterCount, counts, othersCounts])
+        finalArr.push([savedCount, allCharacterCount, counts, othersCounts]);
       });
 
       let keys = {};
@@ -197,6 +222,7 @@ define([
         keys = Object.values(finalArr[0][2])
         values = Object.keys(finalArr[0][2])
       } catch(error) {
+        console.log(error);
         return;
       }
 
@@ -313,6 +339,9 @@ define([
 
     nestedToUnestedChanges(counts,userAnswers) {
       //Populate the userAnswers object
+      console.log("Input");
+      console.log(counts);
+      console.log(userAnswers);
       if (counts == undefined) {
         return;
       } else {
@@ -328,6 +357,8 @@ define([
           }
         }
       }
+      console.log("User userAnswers");
+      console.log(userAnswers);
       return userAnswers;
     }
 
@@ -359,17 +390,31 @@ define([
       return finalObj;
     }
 
+    getBarPosition(values) {
+      var total = 0;
+      var firstValue = null;
+      for (let key in values) {
+       total += values[key];
+       if (!firstValue) {
+        firstValue = values[key];
+       }
+      }
+      var totalPercent = 100 / total;
+      var newCountOne = firstValue * totalPercent;
+      return newCountOne;
+    }
+
     getFeedbackText(results) {
       let outputs = {};
       let userAnswers = this.getUserAnswersTemplate();
       let othersAnswers = this.getUserAnswersTemplate();
       try {
         userAnswers = this.nestedToUnestedChanges(results.counts,userAnswers);
-        othersAnswers = this.nestedToUnestedChanges(results.othersCounts,userAnswers);
+        othersAnswers = this.nestedToUnestedChanges(results.othersCounts,othersAnswers);
       } catch (error) {
         console.log(error);
       }
-      let finalObj = this.removeZeroValues(userAnswers);
+      userAnswers = this.removeZeroValues(userAnswers);
       othersAnswers = this.removeZeroValues(othersAnswers);
 
       var savedTableDetail = "";
@@ -413,52 +458,49 @@ define([
       let keysForView;
       let arrForBar = [];
       let valuesForBar = [];
+      let barPositions = {};
 
-      if (finalObj.length === 0) {
+      if (userAnswers.length === 0) {
         return;
       } else {
-        keysForView = Object.keys(finalObj);
-        valuesForBar = Object.values(finalObj);
-        valuesForBar.map((v) => {
-          let 
-            total = Object.values(v)[0] + Object.values(v)[1],
-            percent = (Object.values(v)[0] / total) * 100,
-            totalPercent = 100 / total,
-            newCountOne = Object.values(v)[0] * totalPercent;
-            arrForBar.push(newCountOne);
-        });
+        keysForView = Object.keys(userAnswers);
+        Object.keys(userAnswers).map((key) => {
+          barPositions[key] = { 
+            "user": this.getBarPosition(userAnswers[key]),
+            "others": this.getBarPosition(othersAnswers[key])
+           };
+        })
       }
+      console.log("Bar positions");
+      console.log(barPositions);
       
-      const 
-        list = arrForBar,
-        halfRatio = Math.ceil(list.length / 2),  
-        firstHalfRatio = list.slice(0, halfRatio),
-        secondHalfRatio = list.slice(-halfRatio);
-
       var index = 0;
       var offsets = {};
-      keysForView.forEach(key => {
+      for (let key in barPositions) {
         outputs[key] = `
           <sub-section id="question-${key}">
             <h3>${key.replaceAll("-", " ")}</h3>
             <panel>
               <left><img class="results-img" src="./assets/${key}_left.svg"/></left>
-              <result>
-                <div id="you" style="margin-left: ${arrForBar[index]}%;">
-                  <div id="you-bar"></div>
-                  <div> You </div>
-                </div>
-                <div id="left"></div>
-                <div id="slider"></div>
-                <div id="middle"></div>
-                <div id="right"></div>
-              </result>
+              <canvas id="canvas-${key}" height="60" width="300">
+              </canvas>
               <right><img class="results-img" src="./assets/${key}_right.svg"/></right>
             </panel>
           </sub-section>
+          <script>
+            if (typeof ctxArray === "undefined") {
+              var ctxArray = [];
+            }
+            ctxArray["${key}"] = []
+            ctxArray["${key}"]["ctx"] = document.getElementById("canvas-${key}").getContext("2d");
+            ctxArray["${key}"]["c"] = document.getElementById("canvas-${key}");
+            drawTemplate(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"]);
+            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["user"]},"You","top");
+            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["others"]},"Others","bottom");
+          </script>
         `;
         index++;
-      });
+      };
 
       return outputs;
     }
