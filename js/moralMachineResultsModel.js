@@ -19,13 +19,17 @@ define([
     /**
      * Checks to see if the assessment was completed in a previous session or not
      */
-    checkIfAssessmentComplete() {
+    async checkIfAssessmentComplete() {
       if (!Adapt.assessment || this.get('_assessmentId') === undefined) {
         return;
       }
 
       const assessmentModel = Adapt.assessment.get(this.get('_assessmentId'));
       if (!assessmentModel || assessmentModel.length === 0) return;
+
+      if (Adapt.config.get('_xapi')._queryURL) {
+        await this.loadDataFromXAPI(assessmentModel);
+      }
 
       const state = assessmentModel.getState();
       const isResetOnRevisit = assessmentModel.get('_assessment')._isResetOnRevisit;
@@ -98,61 +102,35 @@ define([
 
        return counts;
     }
-    async getDataFromXAPI(componentID) {
+
+    async fetchDataFromXAPI(componentID) {
       var xapiQueryEndpoint = Adapt.config.get('_xapi')._queryURL;
-      var xapiQueryEndpoint = "https://learning-locker-api.herokuapp.com/"
       var activityID = Adapt.config.get('_xapi')._activityID;
       var componentURI = encodeURIComponent(activityID + "#/id/" + componentID);
 
       var dataURL = xapiQueryEndpoint + "?activity=" + componentURI;
-      const fetchJson = async () => {
-        const response = await fetch(dataURL)
-        const json = await response.json()
-        return json
+      const response = await fetch(dataURL);
+      const json = await response.json();
+      return json;
+    }
+
+    async loadDataFromXAPI(assessmentModel) {
+      var components = assessmentModel._getAllQuestionComponents();
+      for (let ci = 0; ci < components.length; ci++) {
+        var component = components[ci];
+        component["APIdata"] = await this.fetchDataFromXAPI(component.get("_id"));
       }
-      return await fetchJson();
+      //Load all the previous responses here into an object that can be referenced later when assessment is complete, or even before?
     }
 
-    async getOtherCounts(assessmentModel) {
-      let othersCounts = {};
-      assessmentModel._getAllQuestionComponents().forEach(async (component) => {
-        var responses = []
-        if (Adapt.config.get('_xapi')._isEnabled) {
-          console.log("Attempting to get data");
-          var data = await this.getDataFromXAPI(component.get("_id"));
-          responses = data.responses || null;
-        }
-        
-        var totalResponses = 0;
-        responses.map(response => {
-          totalResponses += response.count;
-        });
-        
-        for(let i = 0; i < 2; i++) {
-          var item = component.getChildren().models[i].attributes.scoring;
-          othersCounts = this.initScoring(item,othersCounts,totalResponses);
-        }
-          //Prepare othersCounts to match the scoring counts so far.
-        
-        responses.map(response => {
-            var id = response.id;
-            var multiplier = response.count;
-            var scoreObj = component.getChildren().models[id-1].attributes.scoring;
-            othersCounts = this.updateScoring(scoreObj,othersCounts,multiplier);
-        });
-      });
-      return othersCounts;
-    }
-
-    async onAssessmentComplete(state, assessmentModel) {
+    onAssessmentComplete(state, assessmentModel) {
       if (this.get('_assessmentId') === undefined ||
           this.get('_assessmentId') !== state.id) return;
           
       let 
         // counting choices
         counts = {},
-        //  most killed + most saved set up
-        othersCounts = await this.getOtherCounts(assessmentModel),
+        othersCounts = {},
         savedCount = {},
         allCharacterCount = {},
         finalArr = [],
@@ -161,13 +139,30 @@ define([
               
       // view()
       // TODO: Jack this is the new bit and the only real difference so far from the vanilla AssessmentResults component. It might not even belong here but it gives you an idea.
-
+      var components = assessmentModel._getAllQuestionComponents();
+  
+      //for (let ci = 0; ci < components.length; ci++) {
+      //  var component = components[ci];
       assessmentModel._getAllQuestionComponents().forEach(component => {
+
+        let arr = [];
+        let responses = {};
+        let totalResponses = 0;
+        
+        if (component.APIdata) {
+          responses = component.APIdata.responses;
+          totalResponses = component.APIdata.completion;
+        }
+
         for(let i = 0; i < 2; i++) {
           var item = component.getChildren().models[i].attributes.scoring;
           counts = this.initScoring(item,counts,1);
+          if (component.APIdata) {
+            othersCounts = this.initScoring(item,othersCounts,totalResponses);
+            othersCounts = this.updateScoring(item,othersCounts,responses[i].count);
+          }
         }
-        
+
         // Get and process the active item. 
         let scoreObj = {};
         //Build the array that you need to render the results (the graphical thing)       
@@ -177,10 +172,6 @@ define([
         } catch (error) {
           return;
         }
-
-        //Most killed + most saved 
-        let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
-        let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
       
         function getCharacterCounts(activeItem) {
           var saved = activeItem.attributes["saved characters"];
@@ -212,8 +203,10 @@ define([
 
         allCharacterCount = getCharacterCounts(component.getActiveItems()[0]);
         savedCount = getSavedCounts(component.getActiveItems()[0]);    
-        finalArr.push([savedCount, allCharacterCount, counts, othersCounts]);
+        
       });
+
+      finalArr.push([savedCount, allCharacterCount, counts ]);
 
       let keys = {};
       let values = {};
@@ -222,15 +215,14 @@ define([
         keys = Object.values(finalArr[0][2])
         values = Object.keys(finalArr[0][2])
       } catch(error) {
-        console.log(error);
         return;
       }
 
       let results = {
         counts: finalArr[0][2],
-        othersCounts: finalArr[0][3],
         savedCount: finalArr[0][0],
         allCharacterCount: finalArr[0][1],
+        othersCounts: othersCounts,
         keys: keys,
         values: values
       }
@@ -339,9 +331,6 @@ define([
 
     nestedToUnestedChanges(counts,userAnswers) {
       //Populate the userAnswers object
-      console.log("Input");
-      console.log(counts);
-      console.log(userAnswers);
       if (counts == undefined) {
         return;
       } else {
@@ -357,8 +346,6 @@ define([
           }
         }
       }
-      console.log("User userAnswers");
-      console.log(userAnswers);
       return userAnswers;
     }
 
@@ -392,10 +379,10 @@ define([
 
     getBarPosition(values) {
       var total = 0;
-      var firstValue = null;
+      var firstValue = -1;
       for (let key in values) {
        total += values[key];
-       if (!firstValue) {
+       if (firstValue < 0) {
         firstValue = values[key];
        }
       }
@@ -471,8 +458,6 @@ define([
            };
         })
       }
-      console.log("Bar positions");
-      console.log(barPositions);
       
       var index = 0;
       var offsets = {};
