@@ -19,13 +19,17 @@ define([
     /**
      * Checks to see if the assessment was completed in a previous session or not
      */
-    checkIfAssessmentComplete() {
+    async checkIfAssessmentComplete() {
       if (!Adapt.assessment || this.get('_assessmentId') === undefined) {
         return;
       }
 
       const assessmentModel = Adapt.assessment.get(this.get('_assessmentId'));
       if (!assessmentModel || assessmentModel.length === 0) return;
+
+      if (Adapt.config.get('_xapi')._queryURL) {
+        await this.loadDataFromXAPI(assessmentModel);
+      }
 
       const state = assessmentModel.getState();
       const isResetOnRevisit = assessmentModel.get('_assessment')._isResetOnRevisit;
@@ -36,6 +40,88 @@ define([
       this.setVisibility();
     }
    
+    initScoring(scoreObj,counts,multiplier) {
+      for (let j =0; j < scoreObj.length; j++) {
+        if (scoreObj[j].choices == "Avoid Intervention") {
+          counts["Intervene"] = (counts["Intervene"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save people in car") {
+          counts["Save pedestrians"] = (counts["Save pedestrians"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Uphold law") {
+          counts["Disobey law"] = (counts["Disobey law"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save pets") {
+          counts["Save humans"] = (counts["Save humans"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save more people") {
+          counts["Save less people"] = (counts["Save less people"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save robbers") {
+          counts["Save professionals"] = (counts["Save professionals"] || 0) + (1 * multiplier);
+        }
+        if (scoreObj[j].choices == "Save old") {
+          counts["Save young"] = (counts["Save young"] || 0) + (1 * multiplier);
+        }
+      }
+      return counts;
+    }
+
+    updateScoring(scoreObj,counts,multiplier) {
+
+      let arr = [];
+
+      for(let i = 0; i < scoreObj.length; i++) {
+       arr.push(scoreObj[i].choices)
+      }
+
+      arr.forEach((x) => {
+        counts[x] = (counts[x] || 0) + (1 * multiplier);
+        if (x == "Avoid Intervention") { 
+         counts["Intervene"] = counts["Intervene"] - (1 * multiplier);
+        }
+        if (x == "Save people in car") {
+          counts["Save pedestrians"] = counts["Save pedestrians"] - (1 * multiplier);
+        }
+        if (x == "Uphold law") {
+          counts["Disobey law"] = counts["Disobey law"] - (1 * multiplier);
+        }
+        if (x == "Save pets") {
+          counts["Save humans"] = counts["Save humans"] - (1 * multiplier);
+        }
+        if (x == "Save more people") {
+          counts["Save less people"] = counts["Save less people"] - (1 * multiplier);
+        }
+        if (x == "Save robbers") {
+          counts["Save professionals"] = counts["Save professionals"] - (1 * multiplier);
+        }
+        if (x == "Save old") {
+          counts["Save young"] = counts["Save young"] - (1 * multiplier);
+        }
+      })
+
+       return counts;
+    }
+
+    async fetchDataFromXAPI(componentID) {
+      var xapiQueryEndpoint = Adapt.config.get('_xapi')._queryURL;
+      var activityID = Adapt.config.get('_xapi')._activityID;
+      var componentURI = encodeURIComponent(activityID + "#/id/" + componentID);
+
+      var dataURL = xapiQueryEndpoint + "?activity=" + componentURI;
+      const response = await fetch(dataURL);
+      const json = await response.json();
+      return json;
+    }
+
+    async loadDataFromXAPI(assessmentModel) {
+      var components = assessmentModel._getAllQuestionComponents();
+      for (let ci = 0; ci < components.length; ci++) {
+        var component = components[ci];
+        component["APIdata"] = await this.fetchDataFromXAPI(component.get("_id"));
+      }
+      //Load all the previous responses here into an object that can be referenced later when assessment is complete, or even before?
+    }
 
     onAssessmentComplete(state, assessmentModel) {
       if (this.get('_assessmentId') === undefined ||
@@ -44,7 +130,7 @@ define([
       let 
         // counting choices
         counts = {},
-        //  most killed + most saved set up
+        othersCounts = {},
         savedCount = {},
         allCharacterCount = {},
         finalArr = [],
@@ -53,77 +139,39 @@ define([
               
       // view()
       // TODO: Jack this is the new bit and the only real difference so far from the vanilla AssessmentResults component. It might not even belong here but it gives you an idea.
+      var components = assessmentModel._getAllQuestionComponents();
+  
+      //for (let ci = 0; ci < components.length; ci++) {
+      //  var component = components[ci];
       assessmentModel._getAllQuestionComponents().forEach(component => {
+
         let arr = [];
+        let responses = {};
+        let totalResponses = 0;
+        
+        if (component.APIdata) {
+          responses = component.APIdata.responses;
+          totalResponses = component.APIdata.completion;
+        }
 
         for(let i = 0; i < 2; i++) {
           var item = component.getChildren().models[i].attributes.scoring;
-          for (let j =0; j < item.length; j++) {
-            if (item[j].choices == "Avoid Intervention") {
-              counts["Intervene"] = (counts["Intervene"] || 0) + 1;
-            }
-            if (item[j].choices == "Save people in car") {
-              counts["Save pedestrians"] = (counts["Save pedestrians"] || 0) + 1;
-            }
-            if (item[j].choices == "Uphold law") {
-              counts["Disobey law"] = (counts["Disobey law"] || 0) + 1;
-            }
-            if (item[j].choices == "Save pets") {
-              counts["Save humans"] = (counts["Save humans"] || 0) + 1;
-            }
-            if (item[j].choices == "Save more people") {
-              counts["Save less people"] = (counts["Save less people"] || 0) + 1;
-            }
-            if (item[j].choices == "Save robbers") {
-              counts["Save professionals"] = (counts["Save professionals"] || 0) + 1;
-            }
-            if (item[j].choices == "Save old") {
-              counts["Save young"] = (counts["Save young"] || 0) + 1;
-            }
+          counts = this.initScoring(item,counts,1);
+          if (component.APIdata) {
+            othersCounts = this.initScoring(item,othersCounts,totalResponses);
+            othersCounts = this.updateScoring(item,othersCounts,responses[i].count);
           }
         }
 
+        // Get and process the active item. 
         let scoreObj = {};
         //Build the array that you need to render the results (the graphical thing)       
         try {
           scoreObj = component.getActiveItems()[0].attributes.scoring;
+          counts = this.updateScoring(scoreObj,counts,1);
         } catch (error) {
-          //Assume assessment isn't in fact complete and return.
           return;
         }
-        
-        for(let i = 0; i < scoreObj.length; i++) {
-         arr.push(scoreObj[i].choices)
-        }
-
-        arr.forEach((x) => {
-          counts[x] = (counts[x] || 0) + 1;
-          if (x == "Avoid Intervention") { 
-             counts["Intervene"] = counts["Intervene"] - 1;
-          }
-          if (x == "Save people in car") {
-            counts["Save pedestrians"] = counts["Save pedestrians"] - 1;
-          }
-          if (x == "Uphold law") {
-            counts["Disobey law"] = counts["Disobey law"] - 1;
-          }
-          if (x == "Save pets") {
-            counts["Save humans"] = counts["Save humans"] - 1;
-          }
-          if (x == "Save more people") {
-            counts["Save less people"] = counts["Save less people"] - 1;
-          }
-          if (x == "Save robbers") {
-            counts["Save professionals"] = counts["Save professionals"] - 1;
-          }
-          if (x == "Save old") {
-            counts["Save young"] = counts["Save young"] - 1;
-          }
-        })
-  
-        //Most killed + most saved 
-        let killedLength = component.getActiveItems()[0].attributes["killed characters"].length
-        let savedLength = component.getActiveItems()[0].attributes["saved characters"].length
       
         function getCharacterCounts(activeItem) {
           var saved = activeItem.attributes["saved characters"];
@@ -155,8 +203,10 @@ define([
 
         allCharacterCount = getCharacterCounts(component.getActiveItems()[0]);
         savedCount = getSavedCounts(component.getActiveItems()[0]);    
-        finalArr.push([savedCount, allCharacterCount, counts])
+        
       });
+
+      finalArr.push([savedCount, allCharacterCount, counts ]);
 
       let keys = {};
       let values = {};
@@ -172,6 +222,7 @@ define([
         counts: finalArr[0][2],
         savedCount: finalArr[0][0],
         allCharacterCount: finalArr[0][1],
+        othersCounts: othersCounts,
         keys: keys,
         values: values
       }
@@ -278,13 +329,13 @@ define([
       return userAnswers;
     }
 
-    nestedToUnestedChanges(results,userAnswers) {
+    nestedToUnestedChanges(counts,userAnswers) {
       //Populate the userAnswers object
-      if (results.counts == undefined) {
+      if (counts == undefined) {
         return;
       } else {
         // loop on the changingObj
-        for (const [key1, value] of Object.entries(results.counts)) {
+        for (const [key1, value] of Object.entries(counts)) {
           // loop on the first obj for every entry of the changing obj
           for (const [key2, _] of Object.entries(userAnswers)) {
             // checking if the obj has a property of the changing obj's key
@@ -326,15 +377,32 @@ define([
       return finalObj;
     }
 
+    getBarPosition(values) {
+      var total = 0;
+      var firstValue = -1;
+      for (let key in values) {
+       total += values[key];
+       if (firstValue < 0) {
+        firstValue = values[key];
+       }
+      }
+      var totalPercent = 100 / total;
+      var newCountOne = firstValue * totalPercent;
+      return newCountOne;
+    }
+
     getFeedbackText(results) {
       let outputs = {};
       let userAnswers = this.getUserAnswersTemplate();
+      let othersAnswers = this.getUserAnswersTemplate();
       try {
-        userAnswers = this.nestedToUnestedChanges(results,userAnswers)
+        userAnswers = this.nestedToUnestedChanges(results.counts,userAnswers);
+        othersAnswers = this.nestedToUnestedChanges(results.othersCounts,othersAnswers);
       } catch (error) {
         console.log(error);
       }
-      let finalObj = this.removeZeroValues(userAnswers);
+      userAnswers = this.removeZeroValues(userAnswers);
+      othersAnswers = this.removeZeroValues(othersAnswers);
 
       var savedTableDetail = "";
       var percentages = [];
@@ -372,56 +440,52 @@ define([
       </sub-section>
       `;
 
+      //Place we now need to handle the userAnser and the answer of others.
+
       let keysForView;
       let arrForBar = [];
       let valuesForBar = [];
+      let barPositions = {};
 
-      if (finalObj.length === 0) {
+      if (userAnswers.length === 0) {
         return;
       } else {
-        keysForView = Object.keys(finalObj);
-        valuesForBar = Object.values(finalObj);
-        valuesForBar.map((v) => {
-          let 
-            total = Object.values(v)[0] + Object.values(v)[1],
-            percent = (Object.values(v)[0] / total) * 100,
-            totalPercent = 100 / total,
-            newCountOne = Object.values(v)[0] * totalPercent;
-            //newCountTwo = Object.values(v)[1] * totalPercent;
-          arrForBar.push(newCountOne);
-        });
+        keysForView = Object.keys(userAnswers);
+        Object.keys(userAnswers).map((key) => {
+          barPositions[key] = { 
+            "user": this.getBarPosition(userAnswers[key]),
+            "others": this.getBarPosition(othersAnswers[key])
+           };
+        })
       }
       
-      const 
-        list = arrForBar,
-        halfRatio = Math.ceil(list.length / 2),  
-        firstHalfRatio = list.slice(0, halfRatio),
-        secondHalfRatio = list.slice(-halfRatio);
-
       var index = 0;
       var offsets = {};
-      keysForView.forEach(key => {
+      for (let key in barPositions) {
         outputs[key] = `
           <sub-section id="question-${key}">
             <h3>${key.replaceAll("-", " ")}</h3>
             <panel>
               <left><img class="results-img" src="./assets/${key}_left.svg"/></left>
-              <result>
-                <div id="you" style="margin-left: ${arrForBar[index]}%;">
-                  <div id="you-bar"></div>
-                  <div> You </div>
-                </div>
-                <div id="left"></div>
-                <div id="slider"></div>
-                <div id="middle"></div>
-                <div id="right"></div>
-              </result>
+              <canvas id="canvas-${key}" height="60" width="300">
+              </canvas>
               <right><img class="results-img" src="./assets/${key}_right.svg"/></right>
             </panel>
           </sub-section>
+          <script>
+            if (typeof ctxArray === "undefined") {
+              var ctxArray = [];
+            }
+            ctxArray["${key}"] = []
+            ctxArray["${key}"]["ctx"] = document.getElementById("canvas-${key}").getContext("2d");
+            ctxArray["${key}"]["c"] = document.getElementById("canvas-${key}");
+            drawTemplate(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"]);
+            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["user"]},"You","top");
+            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["others"]},"Others","bottom");
+          </script>
         `;
         index++;
-      });
+      };
 
       return outputs;
     }
