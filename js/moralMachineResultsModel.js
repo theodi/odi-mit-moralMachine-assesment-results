@@ -27,8 +27,12 @@ define([
       const assessmentModel = Adapt.assessment.get(this.get('_assessmentId'));
       if (!assessmentModel || assessmentModel.length === 0) return;
 
-      if (Adapt.config.get('_xapi')._queryURL) {
-        await this.loadDataFromXAPI(assessmentModel);
+      try {
+        if (Adapt.config.get('_xapi')._queryURL) {
+          await this.loadDataFromXAPI(assessmentModel);
+        }
+      } catch(err) {
+        //console.log(err);
       }
 
       const state = assessmentModel.getState();
@@ -266,7 +270,7 @@ define([
       const assessmentModel = Adapt.assessment.get(state.id);
       if (!assessmentModel.canResetInPage()) return false;
 
-      const isRetryEnabled = true;
+      const isRetryEnabled = false;
       const isAttemptsLeft = (state.attemptsLeft > 0 || state.attemptsLeft === 'infinite');
       const showRetry = isRetryEnabled && isAttemptsLeft;
 
@@ -284,6 +288,7 @@ define([
 
       var template = Handlebars.compile(this.get('_feedbackTemplate'));
       var feedback = template(outputs);
+
       this.set({
         feedback,
         body: this.get('_completionBody')
@@ -446,6 +451,7 @@ define([
       let arrForBar = [];
       let valuesForBar = [];
       let barPositions = {};
+      let componentId = this.get("_id");
 
       if (userAnswers.length === 0) {
         return;
@@ -477,8 +483,8 @@ define([
               var ctxArray = [];
             }
             ctxArray["${key}"] = []
-            ctxArray["${key}"]["ctx"] = document.getElementById("canvas-${key}").getContext("2d");
-            ctxArray["${key}"]["c"] = document.getElementById("canvas-${key}");
+            ctxArray["${key}"]["ctx"] = document.querySelector('[data-adapt-id="${componentId}"]').querySelector('#canvas-${key}').getContext("2d");
+            ctxArray["${key}"]["c"] = document.querySelector('[data-adapt-id="${componentId}"]').querySelector('#canvas-${key}');
             drawTemplate(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"]);
             drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["user"]},"You","top");
             drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["others"]},"Others","bottom");
