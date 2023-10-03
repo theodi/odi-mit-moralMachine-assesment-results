@@ -4,7 +4,7 @@ define([
 ], function(Adapt, ComponentModel) {
 
   class MoralMachineResultsResultsModel extends ComponentModel {
-    
+
     init(...args) {
       this.set('originalBody', this.get('body'));// save the original body text so we can restore it when the assessment is reset
 
@@ -31,174 +31,165 @@ define([
         if (Adapt.config.get('_xapi')._queryURL) {
           await this.loadDataFromXAPI(assessmentModel);
         }
-      } catch(err) {
-        //console.log(err);
+      } catch (err) {
+        // console.log(err);
       }
 
       const state = assessmentModel.getState();
       const isResetOnRevisit = assessmentModel.get('_assessment')._isResetOnRevisit;
       if (state.isComplete && (!state.allowResetIfPassed || !isResetOnRevisit)) {
-        this.onAssessmentComplete(state,assessmentModel);
+        this.onAssessmentComplete(state, assessmentModel);
         return;
       }
       this.setVisibility();
     }
-   
-    initScoring(scoreObj,counts,multiplier) {
-      for (let j =0; j < scoreObj.length; j++) {
-        if (scoreObj[j].choices == "Avoid Intervention") {
-          counts["Intervene"] = (counts["Intervene"] || 0) + (1 * multiplier);
+
+    initScoring(scoreObj, counts, multiplier) {
+      for (let j = 0; j < scoreObj.length; j++) {
+        if (scoreObj[j].choices === 'Avoid Intervention') {
+          counts.Intervene = (counts.Intervene || 0) + (1 * multiplier);
         }
-        if (scoreObj[j].choices == "Save people in car") {
-          counts["Save pedestrians"] = (counts["Save pedestrians"] || 0) + (1 * multiplier);
+        if (scoreObj[j].choices === 'Save people in car') {
+          counts['Save pedestrians'] = (counts['Save pedestrians'] || 0) + (1 * multiplier);
         }
-        if (scoreObj[j].choices == "Uphold law") {
-          counts["Disobey law"] = (counts["Disobey law"] || 0) + (1 * multiplier);
+        if (scoreObj[j].choices === 'Uphold law') {
+          counts['Disobey law'] = (counts['Disobey law'] || 0) + (1 * multiplier);
         }
-        if (scoreObj[j].choices == "Save pets") {
-          counts["Save humans"] = (counts["Save humans"] || 0) + (1 * multiplier);
+        if (scoreObj[j].choices === 'Save pets') {
+          counts['Save humans'] = (counts['Save humans'] || 0) + (1 * multiplier);
         }
-        if (scoreObj[j].choices == "Save more people") {
-          counts["Save less people"] = (counts["Save less people"] || 0) + (1 * multiplier);
+        if (scoreObj[j].choices === 'Save more people') {
+          counts['Save less people'] = (counts['Save less people'] || 0) + (1 * multiplier);
         }
-        if (scoreObj[j].choices == "Save robbers") {
-          counts["Save professionals"] = (counts["Save professionals"] || 0) + (1 * multiplier);
+        if (scoreObj[j].choices === 'Save robbers') {
+          counts['Save professionals'] = (counts['Save professionals'] || 0) + (1 * multiplier);
         }
-        if (scoreObj[j].choices == "Save old") {
-          counts["Save young"] = (counts["Save young"] || 0) + (1 * multiplier);
+        if (scoreObj[j].choices === 'Save old') {
+          counts['Save young'] = (counts['Save young'] || 0) + (1 * multiplier);
         }
       }
       return counts;
     }
 
-    updateScoring(scoreObj,counts,multiplier) {
+    updateScoring(scoreObj, counts, multiplier) {
 
-      let arr = [];
+      const arr = [];
 
-      for(let i = 0; i < scoreObj.length; i++) {
-       arr.push(scoreObj[i].choices)
+      for (let i = 0; i < scoreObj.length; i++) {
+        arr.push(scoreObj[i].choices);
       }
 
       arr.forEach((x) => {
         counts[x] = (counts[x] || 0) + (1 * multiplier);
-        if (x == "Avoid Intervention") { 
-         counts["Intervene"] = counts["Intervene"] - (1 * multiplier);
+        if (x === 'Avoid Intervention') {
+          counts.Intervene = counts.Intervene - (1 * multiplier);
         }
-        if (x == "Save people in car") {
-          counts["Save pedestrians"] = counts["Save pedestrians"] - (1 * multiplier);
+        if (x === 'Save people in car') {
+          counts['Save pedestrians'] = counts['Save pedestrians'] - (1 * multiplier);
         }
-        if (x == "Uphold law") {
-          counts["Disobey law"] = counts["Disobey law"] - (1 * multiplier);
+        if (x === 'Uphold law') {
+          counts['Disobey law'] = counts['Disobey law'] - (1 * multiplier);
         }
-        if (x == "Save pets") {
-          counts["Save humans"] = counts["Save humans"] - (1 * multiplier);
+        if (x === 'Save pets') {
+          counts['Save humans'] = counts['Save humans'] - (1 * multiplier);
         }
-        if (x == "Save more people") {
-          counts["Save less people"] = counts["Save less people"] - (1 * multiplier);
+        if (x === 'Save more people') {
+          counts['Save less people'] = counts['Save less people'] - (1 * multiplier);
         }
-        if (x == "Save robbers") {
-          counts["Save professionals"] = counts["Save professionals"] - (1 * multiplier);
+        if (x === 'Save robbers') {
+          counts['Save professionals'] = counts['Save professionals'] - (1 * multiplier);
         }
-        if (x == "Save old") {
-          counts["Save young"] = counts["Save young"] - (1 * multiplier);
+        if (x === 'Save old') {
+          counts['Save young'] = counts['Save young'] - (1 * multiplier);
         }
-      })
+      });
 
-       return counts;
+      return counts;
     }
 
     async fetchDataFromXAPI(componentID) {
-      var xapiQueryEndpoint = Adapt.config.get('_xapi')._queryURL;
-      var activityID = Adapt.config.get('_xapi')._activityID;
-      var componentURI = encodeURIComponent(activityID + "#/id/" + componentID);
+      const xapiQueryEndpoint = Adapt.config.get('_xapi')._queryURL;
+      const activityID = Adapt.config.get('_xapi')._activityID;
+      const componentURI = encodeURIComponent(activityID + '#/id/' + componentID);
 
-      var dataURL = xapiQueryEndpoint + "?activity=" + componentURI;
+      const dataURL = xapiQueryEndpoint + '?activity=' + componentURI;
       const response = await fetch(dataURL);
       const json = await response.json();
       return json;
     }
 
     async loadDataFromXAPI(assessmentModel) {
-      var components = assessmentModel._getAllQuestionComponents();
+      const components = assessmentModel._getAllQuestionComponents();
       for (let ci = 0; ci < components.length; ci++) {
-        var component = components[ci];
-        component["APIdata"] = await this.fetchDataFromXAPI(component.get("_id"));
+        const component = components[ci];
+        component.APIdata = await this.fetchDataFromXAPI(component.get('_id'));
       }
-      //Load all the previous responses here into an object that can be referenced later when assessment is complete, or even before?
+      // Load all the previous responses here into an object that can be referenced later when assessment is complete, or even before?
     }
 
     onAssessmentComplete(state, assessmentModel) {
       if (this.get('_assessmentId') === undefined ||
           this.get('_assessmentId') !== state.id) return;
-          
-      let 
+
+      let
         // counting choices
-        counts = {},
-        othersCounts = {},
-        savedCount = {},
-        allCharacterCount = {},
-        finalArr = [],
-        mostKilled,
-        mostSaved;
-              
-      // view()
-      // TODO: Jack this is the new bit and the only real difference so far from the vanilla AssessmentResults component. It might not even belong here but it gives you an idea.
-      var components = assessmentModel._getAllQuestionComponents();
-  
-      //for (let ci = 0; ci < components.length; ci++) {
-      //  var component = components[ci];
+        counts = {};
+      let othersCounts = {};
+      let savedCount = {};
+      let allCharacterCount = {};
+      const finalArr = [];
+
       assessmentModel._getAllQuestionComponents().forEach(component => {
 
-        let arr = [];
         let responses = {};
         let totalResponses = 0;
-        
+
         if (component.APIdata) {
           responses = component.APIdata.responses;
           totalResponses = component.APIdata.completion;
         }
 
-        for(let i = 0; i < 2; i++) {
-          var item = component.getChildren().models[i].attributes.scoring;
-          counts = this.initScoring(item,counts,1);
+        for (let i = 0; i < 2; i++) {
+          const item = component.getChildren().models[i].attributes.scoring;
+          counts = this.initScoring(item, counts, 1);
           if (component.APIdata) {
-            othersCounts = this.initScoring(item,othersCounts,totalResponses);
-            othersCounts = this.updateScoring(item,othersCounts,responses[i].count);
+            othersCounts = this.initScoring(item, othersCounts, totalResponses);
+            othersCounts = this.updateScoring(item, othersCounts, responses[i].count);
           }
         }
 
-        // Get and process the active item. 
+        // Get and process the active item.
         let scoreObj = {};
-        //Build the array that you need to render the results (the graphical thing)       
+        // Build the array that you need to render the results (the graphical thing)
         try {
           scoreObj = component.getActiveItems()[0].attributes.scoring;
-          counts = this.updateScoring(scoreObj,counts,1);
+          counts = this.updateScoring(scoreObj, counts, 1);
         } catch (error) {
           return;
         }
-      
+
         function getCharacterCounts(activeItem) {
-          var saved = activeItem.attributes["saved characters"];
-          for(let i=0;i<saved.length;i++) {
-            var Character = saved[i]["character"];
-            var count = saved[i]["number"];
+          const saved = activeItem.attributes['saved characters'];
+          for (let i = 0; i < saved.length; i++) {
+            const Character = saved[i].character;
+            const count = saved[i].number;
             allCharacterCount[Character] = (allCharacterCount[Character] || 0) + count;
           }
-          var killed = activeItem.attributes["killed characters"];
-          for(let i=0;i<killed.length;i++) {
-            var Character = killed[i]["character"];
-            var count = killed[i]["number"];
+          const killed = activeItem.attributes['killed characters'];
+          for (let i = 0; i < killed.length; i++) {
+            const Character = killed[i].character;
+            const count = killed[i].number;
             allCharacterCount[Character] = (allCharacterCount[Character] || 0) + count;
           }
           return allCharacterCount;
         }
 
         function getSavedCounts(activeItem) {
-          var saved = activeItem.attributes["saved characters"];
-          for(let i=0;i<saved.length;i++) {
-            var Character = saved[i]["character"];
-            var count = saved[i]["number"];
-            var gender = Character.split(" ")[0];
+          const saved = activeItem.attributes['saved characters'];
+          for (let i = 0; i < saved.length; i++) {
+            const Character = saved[i].character;
+            const count = saved[i].number;
+            const gender = Character.split(' ')[0];
             counts[gender] = (counts[gender] || 0) + count;
             savedCount[Character] = (savedCount[Character] || 0) + count;
           }
@@ -206,8 +197,8 @@ define([
         }
 
         allCharacterCount = getCharacterCounts(component.getActiveItems()[0]);
-        savedCount = getSavedCounts(component.getActiveItems()[0]);    
-        
+        savedCount = getSavedCounts(component.getActiveItems()[0]);
+
       });
 
       finalArr.push([savedCount, allCharacterCount, counts ]);
@@ -216,22 +207,22 @@ define([
       let values = {};
 
       try {
-        keys = Object.values(finalArr[0][2])
-        values = Object.keys(finalArr[0][2])
-      } catch(error) {
+        keys = Object.values(finalArr[0][2]);
+        values = Object.keys(finalArr[0][2]);
+      } catch (error) {
         return;
       }
 
-      let results = {
+      const results = {
         counts: finalArr[0][2],
         savedCount: finalArr[0][0],
         allCharacterCount: finalArr[0][1],
-        othersCounts: othersCounts,
-        keys: keys,
-        values: values
-      }
+        othersCounts,
+        keys,
+        values
+      };
 
-      this.setResults(results)
+      this.setResults(results);
 
       /*
       make shortcuts to some of the key properties in the state object so that
@@ -246,7 +237,7 @@ define([
         scoreAsPercent: state.scoreAsPercent,
         maxScore: state.maxScore,
         isPass: state.isPass,
-        results: results
+        results
       });
 
       this.checkRetryEnabled(state);
@@ -257,13 +248,13 @@ define([
 
     }
 
-    getResults(){
+    getResults() {
       return this.results;
     }
 
     setResults(object) {
       this.results = object;
-      
+
     }
 
     checkRetryEnabled(state) {
@@ -282,12 +273,12 @@ define([
 
     setFeedbackText(outputs) {
 
-      /*Template example
-      <div class="moralMachineResults__container"><div id="top">{{{preference}}}</div><div  id="main">{{{save-people-in-car}}} {{{avoid-intervention}}}</div></div>
+      /* Template example
+      <div class="moralmachineresults__container"><div id="top">{{{preference}}}</div><div  id="main">{{{save-people-in-car}}} {{{avoid-intervention}}}</div></div>
       */
 
-      var template = Handlebars.compile(this.get('_feedbackTemplate'));
-      var feedback = template(outputs);
+      const template = Handlebars.compile(this.get('_feedbackTemplate'));
+      const feedback = template(outputs);
 
       this.set({
         feedback,
@@ -297,46 +288,46 @@ define([
 
     getUserAnswersTemplate() {
       // Set results template
-      let userAnswers = {
-        "age-preference": {
-          "Save old": 0,
-          "Save young": 0,
+      const userAnswers = {
+        'age-preference': {
+          'Save old': 0,
+          'Save young': 0
         },
-        "saving-more-lives": {
-          "Save less people": 0,
-          "Save more people": 0,
+        'saving-more-lives': {
+          'Save less people': 0,
+          'Save more people': 0
         },
-        "gender-preference": {
-          "Female": 0,
-          "Male": 0,
+        'gender-preference': {
+          Female: 0,
+          Male: 0
         },
-        "save-people-in-car": {
-          "Save people in car": 0,
-          "Save pedestrians": 0,
+        'save-people-in-car': {
+          'Save people in car': 0,
+          'Save pedestrians': 0
         },
-        "species-preference": {
-          "Save humans": 0,
-          "Save pets": 0,
+        'species-preference': {
+          'Save humans': 0,
+          'Save pets': 0
         },
-        "upholding-the-law": {
-          "Uphold law": 0,
-          "Disobey law": 0,
+        'upholding-the-law': {
+          'Uphold law': 0,
+          'Disobey law': 0
         },
-        "social-value-preference": {
-          "Save professionals": 0,
-          "Save robbers": 0,
+        'social-value-preference': {
+          'Save professionals': 0,
+          'Save robbers': 0
         },
-        "avoid-intervention": {
-         "Avoid Intervention": 0,
-         "Intervene": 0,
-        },
+        'avoid-intervention': {
+          'Avoid Intervention': 0,
+          Intervene: 0
+        }
       };
       return userAnswers;
     }
 
-    nestedToUnestedChanges(counts,userAnswers) {
-      //Populate the userAnswers object
-      if (counts == undefined) {
+    nestedToUnestedChanges(counts, userAnswers) {
+      // Populate the userAnswers object
+      if (counts === undefined) {
         return;
       } else {
         // loop on the changingObj
@@ -356,15 +347,15 @@ define([
 
     removeZeroValues(userAnswers) {
       // Remove user answers where there is no data (zero as the value)
-      
-      const keys = Object.keys(userAnswers);
-      const values = Object.values(userAnswers);
 
+      const keys = Object.keys(userAnswers);
+      // const values = Object.values(userAnswers);
+      /*
       keys.map((key) => {
         const property = userAnswers[key];
         const propertyKeys = Object.keys(userAnswers[key]);
       });
-
+      */
       const finalObj = {};
 
       keys.forEach((key) => {
@@ -375,65 +366,65 @@ define([
         );
 
         if (hasNonZeroEntries) {
-              finalObj[key] = userAnswers[key];
-          }
+          finalObj[key] = userAnswers[key];
+        }
       });
 
       return finalObj;
     }
 
     getBarPosition(values) {
-      var total = 0;
-      var firstValue = -1;
-      for (let key in values) {
-       total += values[key];
-       if (firstValue < 0) {
-        firstValue = values[key];
-       }
+      let total = 0;
+      let firstValue = -1;
+      for (const key in values) {
+        total += values[key];
+        if (firstValue < 0) {
+          firstValue = values[key];
+        }
       }
-      var totalPercent = 100 / total;
-      var newCountOne = firstValue * totalPercent;
+      const totalPercent = 100 / total;
+      const newCountOne = firstValue * totalPercent;
       return newCountOne;
     }
 
     getFeedbackText(results) {
-      let outputs = {};
+      const outputs = {};
       let userAnswers = this.getUserAnswersTemplate();
       let othersAnswers = this.getUserAnswersTemplate();
       try {
-        userAnswers = this.nestedToUnestedChanges(results.counts,userAnswers);
-        othersAnswers = this.nestedToUnestedChanges(results.othersCounts,othersAnswers);
+        userAnswers = this.nestedToUnestedChanges(results.counts, userAnswers);
+        othersAnswers = this.nestedToUnestedChanges(results.othersCounts, othersAnswers);
       } catch (error) {
         console.log(error);
       }
       userAnswers = this.removeZeroValues(userAnswers);
       othersAnswers = this.removeZeroValues(othersAnswers);
 
-      var savedTableDetail = "";
-      var percentages = [];
-      
-      Object.keys(results["allCharacterCount"]).forEach(character => {
-        let total = results["allCharacterCount"][character];
-        let saved = results.savedCount[character] || 0;
-        percentages.push([character,(saved/total || 0)]);
+      let savedTableDetail = '';
+      const percentages = [];
+
+      Object.keys(results.allCharacterCount).forEach(character => {
+        const total = results.allCharacterCount[character];
+        const saved = results.savedCount[character] || 0;
+        percentages.push([character, (saved / total || 0)]);
       });
 
       percentages.sort(function(a, b) {
         return b[1] - a[1];
       });
-      
+
       percentages.forEach(function(item) {
-        let character = item[0];
-        let total = results["allCharacterCount"][character];
-        let saved = results.savedCount[character] || 0;
-        if (character.split(" ")[0] == "Pet") {
-          savedTableDetail += "<td><img class='pet-summary' src='assets/character/" + character.replaceAll(" ","_") + ".png'></img><br/>" + saved + "/" + total + "</td>"  
+        const character = item[0];
+        const total = results.allCharacterCount[character];
+        const saved = results.savedCount[character] || 0;
+        if (character.split(' ')[0] === 'Pet') {
+          savedTableDetail += "<td><img class='pet-summary' src='assets/character/" + character.replaceAll(' ', '_') + ".png'></img><br/>" + saved + '/' + total + '</td>';
         } else {
-          savedTableDetail += "<td><img class='character-summary' src='assets/character/" + character.replaceAll(" ","_") + ".png'></img><br/>" + saved + "/" + total + "</td>"
+          savedTableDetail += "<td><img class='character-summary' src='assets/character/" + character.replaceAll(' ', '_') + ".png'></img><br/>" + saved + '/' + total + '</td>';
         }
       });
-        
-      outputs["characters-saved"] = 
+
+      outputs['characters-saved'] =
       `
       <sub-section id="mostSaved" class="characters">
         <h3>Saved characters / Total</h3>
@@ -445,32 +436,26 @@ define([
       </sub-section>
       `;
 
-      //Place we now need to handle the userAnser and the answer of others.
+      // Place we now need to handle the userAnser and the answer of others.
 
-      let keysForView;
-      let arrForBar = [];
-      let valuesForBar = [];
-      let barPositions = {};
-      let componentId = this.get("_id");
+      const barPositions = {};
+      const componentId = this.get('_id');
 
       if (userAnswers.length === 0) {
         return;
       } else {
-        keysForView = Object.keys(userAnswers);
         Object.keys(userAnswers).map((key) => {
-          barPositions[key] = { 
-            "user": this.getBarPosition(userAnswers[key]),
-            "others": this.getBarPosition(othersAnswers[key])
-           };
-        })
+          barPositions[key] = {
+            user: this.getBarPosition(userAnswers[key]),
+            others: this.getBarPosition(othersAnswers[key])
+          };
+        });
       }
-      
-      var index = 0;
-      var offsets = {};
-      for (let key in barPositions) {
+
+      for (const key in barPositions) {
         outputs[key] = `
           <sub-section id="question-${key}">
-            <h3>${key.replaceAll("-", " ")}</h3>
+            <h3>${key.replaceAll('-', ' ')}</h3>
             <panel>
               <left><img class="results-img" src="./assets/${key}_left.svg"/></left>
               <canvas id="canvas-${key}" height="60" width="300">
@@ -486,16 +471,14 @@ define([
             ctxArray["${key}"]["ctx"] = document.querySelector('[data-adapt-id="${componentId}"]').querySelector('#canvas-${key}').getContext("2d");
             ctxArray["${key}"]["c"] = document.querySelector('[data-adapt-id="${componentId}"]').querySelector('#canvas-${key}');
             drawTemplate(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"]);
-            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["user"]},"You","top");
-            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key]["others"]},"Others","bottom");
+            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key].user},"You","top");
+            drawLine(ctxArray["${key}"]["c"],ctxArray["${key}"]["ctx"],${barPositions[key].others},"Others","bottom");
           </script>
         `;
-        index++;
       };
 
       return outputs;
     }
-
 
     setVisibility() {
       if (!Adapt.assessment) return;
@@ -526,7 +509,7 @@ define([
       }
 
       this.setCompletionStatus();
-      
+
     }
 
     /**

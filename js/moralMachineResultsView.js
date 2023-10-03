@@ -1,24 +1,24 @@
-define(["core/js/adapt", "core/js/views/componentView", "libraries/canvas-helper"], function (
+define(['core/js/adapt', 'core/js/views/componentView', 'libraries/canvas-helper'], function (
   Adapt,
   ComponentView
 ) {
   class MoralMachineResultsView extends ComponentView {
     events() {
       return {
-        "click .js-assessment-retry-btn": "onRetryClicked",
+        'click .js-assessment-retry-btn': 'onRetryClicked'
       };
     }
 
     preRender() {
-      this.model.setLocking("_isVisible", false);
-      
-      this.listenTo(Adapt.parentView, "preRemove", function () {
-        this.model.unsetLocking("_isVisible");
+      this.model.setLocking('_isVisible', false);
+
+      this.listenTo(Adapt.parentView, 'preRemove', function () {
+        this.model.unsetLocking('_isVisible');
       });
 
       this.listenTo(this.model, {
-        "change:_feedbackBand": this.addClassesToArticle,
-        "change:body": this.render,
+        'change:_feedbackBand': this.addClassesToArticle,
+        'change:body': this.render
       });
     }
 
@@ -26,7 +26,7 @@ define(["core/js/adapt", "core/js/views/componentView", "libraries/canvas-helper
       this.model.checkIfAssessmentComplete();
       this.setReadyStatus();
       this.setupInviewCompletion(
-        ".component__inner",
+        '.component__inner',
         this.model.checkCompletion.bind(this.model)
       );
     }
@@ -39,12 +39,13 @@ define(["core/js/adapt", "core/js/views/componentView", "libraries/canvas-helper
       const state = this.model.get('_state');
       Adapt.assessment.get(state.id).reset(null, (wasReset) => {
         if (!wasReset) return;
-        
-        if (this.model.get("_retry")._routeToAssessment === true) {
-          Adapt.navigateToElement("." + state.articleId);
+
+        if (this.model.get('_retry')._routeToAssessment === true) {
+          Adapt.navigateToElement('.' + state.articleId);
         }
       });
     }
+
     /**
      * If there are classes specified for the feedback band, apply them to the containing article
      * This allows for custom styling based on the band the user's score falls into
@@ -52,12 +53,12 @@ define(["core/js/adapt", "core/js/views/componentView", "libraries/canvas-helper
     addClassesToArticle(model, value) {
       if (!value || !value._classes) return;
 
-      this.$el.parents(".article").addClass(value._classes);
+      this.$el.parents('.article').addClass(value._classes);
     }
 
   }
 
-  MoralMachineResultsView.template = "assessmentResults";
+  MoralMachineResultsView.template = 'assessmentResults';
 
   return MoralMachineResultsView;
 });

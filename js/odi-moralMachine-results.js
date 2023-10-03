@@ -4,7 +4,7 @@ define([
   './moralMachineResultsView'
 ], function(Adapt, MoralMachineResultsModel, MoralMachineResultsView) {
 
-  return Adapt.register("moralMachineResults", {
+  return Adapt.register('moralMachineResults', {
     model: MoralMachineResultsModel,
     view: MoralMachineResultsView
   });
